@@ -1,0 +1,448 @@
+<script src="https://www.gstatic.com/firebasejs/6.1.1/firebase-app.js"></script>
+<!-- Add Firebase products that you want to use -->
+<script src="https://www.gstatic.com/firebasejs/6.1.1/firebase-database.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+<!--<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>-->
+<!--<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">-->
+
+
+<style>
+  *{
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+  }
+  body{
+    font-family: Helvetica;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Table Styles */
+
+  .table-wrapper{
+    margin: 10px 70px 70px;
+    box-shadow: 0px 35px 50px rgba( 0, 0, 0, 0.2 );
+  }
+
+  .fl-table {
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: normal;
+    border-collapse: collapse;
+    background-color: white;
+  }
+
+  .fl-table td, .fl-table th {
+    text-align: center;
+    padding: 8px;
+  }
+
+  .fl-table td {
+    border-bottom: 1px solid #4FC3A1;
+    border-right: 1px solid #4FC3A1;
+    border-left: 1px solid #4FC3A1;
+    font-size: 12px;
+    max-width: 200px;
+  }
+
+  .fl-table thead th {
+    color: #ffffff;
+    background: #4FC3A1;
+  }
+
+
+  .fl-table thead th:nth-child(odd) {
+    color: #ffffff;
+    background: #324960;
+  }
+
+  .fl-table tr td {
+    color: black;
+    background: #32496048;
+  }
+
+  .fl-table tr.tr_class_1 td {
+    background: #4FC3A132;
+  }
+
+  .fl-table tr.tr_class_e td {
+    background: #ff000032;
+  }
+
+
+
+  .fl-table tr:nth-child(even) {
+    background: #F8F8F8;
+  }
+
+  /* Responsive */
+
+  @media (max-width: 767px) {
+    .fl-table {
+      display: block;
+
+    }
+    .table-wrapper:before{
+      content: "Scroll horizontally >";
+      display: block;
+      text-align: right;
+      font-size: 11px;
+      color: white;
+      padding: 0 0 10px;
+    }
+    .fl-table thead, .fl-table tbody, .fl-table thead th {
+      display: block;
+    }
+    .fl-table thead th:last-child{
+      border-bottom: none;
+    }
+    .fl-table thead {
+      float: left;
+    }
+    .fl-table tbody {
+
+      position: relative;
+
+    }
+    .fl-table td, .fl-table th {
+      padding: 20px .625em .625em .625em;
+      height: 60px;
+      vertical-align: middle;
+      box-sizing: border-box;
+      overflow-x: hidden;
+      overflow-y: auto;
+      width: 120px;
+      max-width: 300px;
+      font-size: 13px;
+      text-overflow: ellipsis;
+    }
+    .fl-table thead th {
+      text-align: left;
+      max-width: 200px;
+      border-bottom: 1px solid #f7f7f9;
+    }
+    .fl-table tbody tr {
+      display: table-cell;
+    }
+    .fl-table tbody tr:nth-child(odd) {
+      background: none;
+    }
+    .fl-table tr:nth-child(even) {
+      background: transparent;
+    }
+    .fl-table tr td:nth-child(odd) {
+      background: #F8F8F8;
+      border-right: 1px solid #E6E4E4;
+    }
+    .fl-table tr td:nth-child(even) {
+      border-right: 1px solid #E6E4E4;
+    }
+    .fl-table tbody td {
+      display: block;
+      text-align: center;
+    }
+  }
+
+  .input_locale{
+    width: 100%;
+  }
+
+
+</style>
+
+
+<div style="display: inline">
+  <div style="display: inline-flex;width: 300px">
+    <table class="fl-table" id="table_languages">
+      <thead>
+      <th>Name</th>
+      <th>isEnabled</th>
+      </thead>
+      <tbody id="languages">
+
+      </tbody>
+      <tr>
+        <td colspan="2">
+         <button id="new_lang">Add Language</button>
+        </td>
+      </tr>
+    </table>
+
+  </div>
+
+
+
+
+  <div style="display: inline-flex;margin-left: 20px;width: 70%;height: 100%">
+    <table class="fl-table">
+      <thead>
+      <th>Кey</th>
+      <th>Current value</th>
+      <th>New value</th>
+      <th>Description</th>
+      </thead>
+      <tbody id="locale">
+
+      </tbody>
+      <tr>
+        <td colspan="4">
+          <button id="save" style="width: 300px">Save</button>
+        </td>
+      </tr>
+
+    </table>
+  </div>
+
+<br />
+
+
+</div>
+
+<script>
+
+
+
+
+    var lKeys = [
+            {key: "calculator_label_header",description:"Calculator label"},
+            {key: "calculator_label_cargo_specification",description:"Calculator label"},
+            {key: "calculator_label_specification_cargo_type",description:"Calculator label"},
+            {key: "calculator_label_specification_height",description:"Calculator label"},
+            {key: "calculator_label_specification_width",description:"Calculator label"},
+            {key: "calculator_label_specification_weight",description:"Calculator label"},
+            {key: "calculator_label_specification_length",description:"Calculator label"},
+            {key: "calculator_label_specification_diameter",description:"Calculator label"},
+            {key: "calculator_label_specification_side_laying",description:"Calculator label"},
+            {key: "calculator_label_specification_layering",description:"Calculator label"},
+            {key: "calculator_label_specific_tonnage",description:"Calculator label"},
+            {key: "calculator_label_specific_tonnage_hint",description:"Calculator label"},
+            {key: "calculator_label_freight_rate",description:"Calculator label"},
+            {key: "calculator_label_result",description:"Calculator label"},
+            {key: "calculator_label_table_column_container_type",description:"Calculator table column label"},
+            {key: "calculator_label_table_column_loading_type",description:"Calculator table column label"},
+            {key: "calculator_label_table_column_placement_type",description:"Calculator table column label"},
+            {key: "calculator_label_table_column_length",description:"Calculator table column label"},
+            {key: "calculator_label_table_column_width",description:"Calculator table column label"},
+            {key: "calculator_label_table_column_levels",description:"Calculator table column label"},
+            {key: "calculator_label_table_column_total",description:"Calculator table column label"},
+            {key: "calculator_label_table_column_carry_cost",description:"Calculator table column label"},
+            {key: "calculator_validation_empty_package_type",description:"Calculator validation"},
+            {key: "calculator_validation_parameter_too_big",description:"Calculator validation"},
+            {key: "calculator_validation_parameter_too_small",description:"Calculator validation"},
+            {key: "calculator_validation_number_parameter_missing",description:"Calculator validation"},
+            {key: "calculator_validation_invalid_workload",description:"Calculator validation"},
+            {key: "calculator_validation_parameter_container_too_small",description:"Calculator validation"},
+            {key: "calculator_validation_parameter_container_too_big",description:"Calculator validation"},
+            {key: "tracking_label_header",description:"Tracking label"},
+            {key: "tracking_label_result",description:"Tracking label"},
+            {key: "tracking_label_table_column_date",description:"Tracking table column label"},
+            {key: "tracking_label_table_column_vessel",description:"Tracking table column label"},
+            {key: "tracking_label_table_column_vessel_type",description:"Tracking table column label"},
+            {key: "tracking_label_table_column_description",description:"Tracking table column label"},
+            {key: "tracking_label_table_column_location",description:"Tracking table column label"},
+            {key: "tracking_label_result_service_company",description:"Tracking table column label"},
+            {key: "tracking_label_result_container_type",description:"Tracking table column label"},
+            {key: "tracking_label_result_destination",description:"Tracking table column label"},
+            {key: "tracking_validation_parameter_length",description:"Tracking validation"},
+            {key: "buttons_action_calculate",description:"buttons"},
+            {key: "buttons_action_search",description:"buttons"},
+            {key: "buttons_action_delete",description:"buttons"},
+            {key: "buttons_action_add",description:"buttons"},
+            {key: "buttons_action_update",description:"buttons"},
+            {key: "buttons_action_edit",description:"buttons"},
+            {key: "dict_container_type_header",description:"dict"},
+            {key: "dict_container_type_column_workload",description:"dict"},
+            {key: "dict_container_type_column_specific_tonnage",description:"dict"},
+            {key: "dict_cargotype_barrel",description:"dict"},
+            {key: "dict_cargotype_sack",description:"dict"},
+            {key: "dict_cargotype_bigbag",description:"dict"},
+            {key: "dict_cargotype_box",description:"dict"},
+            {key: "dict_cargotype_case",description:"dict"},
+            {key: "dict_cargotype_pallet",description:"dict"},
+            {key: "dict_cargotype_pipes",description:"dict"},
+            {key: "dict_loadingtype_by_volume",description:"dict"},
+            {key: "dict_loadingtype_by_weight",description:"dict"},
+            {key: "dict_placementtype_lateral",description:"dict"},
+            {key: "dict_placementtype_longitudinal",description:"dict"},
+            {key: "dict_placementtype_edge_lateral",description:"dict"},
+            {key: "dict_placementtype_edge_longitudinal",description:"dict"},
+            {key: "dict_placementtype_vertical_lateral",description:"dict"},
+            {key: "dict_placementtype_vertical_longitudinal",description:"dict"},
+            {key: "dict_placementtype_row",description:"dict"},
+            {key: "dict_placementtype_row_width_align",description:"dict"},
+            {key: "dict_placementtype_row_length_align",description:"dict"},
+            {key: "dict_placementtype_row_layer_align",description:"dict"},
+            {key: "group",description:"common"},
+            {key: "height",description:"common"},
+            {key: "id",description:"common"},
+            {key: "length",description:"common"},
+            {key: "name",description:"common"},
+            {key: "type",description:"common"},
+            {key: "width",description:"common"},
+            {key: "invalid_parameter",description:"common"}
+            ];
+
+
+    var allKeys = lKeys;
+
+    var jsonBase;
+
+
+    var firebaseConfig = {
+    apiKey: "AIzaSyDAFujZEoHfEaYKrmlDBUD6pZXvq73Z3OU",
+    authDomain: "artinlog-clc.firebaseapp.com",
+    databaseURL: "https://artinlog-clc.firebaseio.com",
+    projectId: "artinlog-clc",
+    storageBucket: "artinlog-clc.appspot.com",
+    messagingSenderId: "1015896788538",
+    appId: "1:1015896788538:web:35d60486bf23781986ef03",
+    measurementId: "G-N3GE8B0R9M"
+  };
+
+
+    firebase.initializeApp(firebaseConfig);
+
+    // Get a reference to the database service
+    var database = firebase.database();
+
+
+   //temp to change ua=>en
+   /* var booksRef = firebase.database().ref('locale');
+    booksRef.child('ua').once('value').then(function(snap) {
+      var data = snap.val();
+      data.ua = 'en';
+      var update = {};
+      update['ua'] = null;
+      update['en'] = data;
+      return booksRef.update(update);
+    });*/
+//
+
+    var ref = firebase.database().ref();
+
+    ref.on('value', function(snapshot) {
+        getData()
+    });
+    function getData() {
+        ref.once('value').then(function(snapshot) {
+            jsonBase = snapshot.val()
+            updateLanguages()
+        });
+    }
+    getData();
+
+
+    $("#new_lang").click(function () {
+        var new_lang = prompt("Language name");
+        if(new_lang == null){
+            return;
+        }
+        if (new_lang.length < 2) {
+          alert("Not valid name!");
+        } else {
+          jsonBase.languages.push({name: new_lang, enabled: false});
+          updateBase()
+        }
+    });
+
+
+    $("#save").click(function () {
+        if(loc == null) return;
+        let inputs = $('.input_locale');
+        var old_cur = cur
+        cur = {};
+        for(var i =0; i<inputs.length;i++){
+            var element  = inputs[i];
+            var key = element.id;
+            var value = element.value;
+            console.log("VAL:" + value);
+            if(value != "") {
+                cur[key] = value;
+            }else if(old_cur[key] != null){
+                cur[key] = old_cur[key];
+            }else{
+                cur[key] = "";
+            }
+        }
+        jsonBase.locale[loc] = cur;
+        console.log(jsonBase);
+        updateBase()
+    });
+
+
+
+
+    function updateBase(){
+        ref.set(jsonBase);
+    }
+
+    var loc = null;
+    function setLocale(locale){
+        loc = locale;
+        cur = jsonBase.locale[loc];
+        var locale_table = "";
+        var ids = 0;
+        allKeys.forEach(function(element) {
+
+            var old_value = "";
+            if( cur != undefined && element.key in cur &&  cur[element.key] != undefined ){
+                old_value = cur[element.key];
+            }
+
+            var sty = ids%2;
+            if(old_value == ""){
+                sty = "e";
+            }
+
+            locale_table += "<tr class = 'tr_class_"+sty+"'>";
+            locale_table += "<td> " + element.key + "</td>";
+            locale_table += "<td>"+ old_value +"</td>";
+            locale_table += "<td> <textarea class='input_locale' id='"+ element.key +"' hint='Enter new value'/></td>";
+            locale_table += "<td> " + element.description + "</td>";
+            locale_table += "</tr>";
+            ids++;
+        });
+        $("#locale").html(locale_table);
+    }
+
+
+
+    function updateLanguages() {
+        var languageTable = "";
+        var i = 0;
+        jsonBase.languages.forEach(function(element) {
+            var v = element.name;
+            //allKeys.push({key: v, description: "localized language name"})
+
+            languageTable += "<tr class='language' id='"+ v +"'>";
+            languageTable += "<td> <img src='/assets/"+v.toUpperCase()+".PNG' width=30 height=30 />"+ element.name.toLowerCase() +"</td>";
+            languageTable += "<td><input type='checkbox' " + (element.enabled?"checked":"") +" class='locale_check' id='"+ i +"' /></td>";
+            languageTable += "</tr>";
+            i++;
+        });
+
+        $("#languages").html(languageTable);
+        $(".language").click(function () {
+            $(".language").css('background-color', 'white');
+            $(this).css('background-color', '#06ca9a');
+            setLocale(this.id)
+        });
+        if(loc != null){
+            $(".language#"+loc).click();
+        }
+
+        $(".locale_check").click(function () {
+            jsonBase.languages[this.id].enabled = this.checked;
+            updateBase();
+        });
+
+//         $('#table_languages').DataTable();
+    }
+
+
+
+
+</script>
+
+

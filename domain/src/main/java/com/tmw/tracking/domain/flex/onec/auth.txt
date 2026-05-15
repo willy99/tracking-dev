@@ -1,0 +1,1 @@
+http://flextank:flextank1993@stoles.mx.od.ua:8088/expeditor/ws/getOrders.1cws?wsdl

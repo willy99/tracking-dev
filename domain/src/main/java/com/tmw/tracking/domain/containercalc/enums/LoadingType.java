@@ -1,0 +1,45 @@
+package com.tmw.tracking.domain.containercalc.enums;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.tmw.tracking.domain.I18NEnum;
+import com.tmw.tracking.utils.I18NService;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import java.util.EnumSet;
+
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
+public enum LoadingType implements I18NEnum {
+
+    BY_VOLUME,
+
+    BY_WEIGHT;
+
+    private I18NService i18NService;
+
+    public void setI18NService(I18NService i18NService) {
+        this.i18NService = i18NService;
+    }
+
+    @Override
+    public String getValue() {
+        return this.name();
+    }
+
+    @Override
+    public String getLabel() {
+        return i18NService.getValue((DICT_PR + this.getClass().getSimpleName() + '_' + this.name()).toLowerCase() );
+    }
+
+    @Singleton
+    public static class LoadingTypeInjector {
+
+        @Inject
+        public LoadingTypeInjector(I18NService i18NService) {
+            for (LoadingType rt : EnumSet.allOf(LoadingType.class))
+                rt.setI18NService(i18NService);
+        }
+
+    }
+
+}

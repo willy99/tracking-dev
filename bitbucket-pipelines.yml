@@ -1,0 +1,13 @@
+pipelines:
+  default:
+    - step:
+        script:
+          - echo "Starting hook script"
+          - echo $CodeCommitKey | base64 -di > ~/.ssh/codecommit_rsa
+          - chmod 400 ~/.ssh/codecommit_rsa
+          - echo $CodeCommitConfig | base64 -di > ~/.ssh/config
+          - set +e
+          - ssh -o StrictHostKeyChecking=no $CodeCommitHost
+          - set -e
+          - git remote add codecommit ssh://$CodeCommitRepo
+          - git push -f codecommit $BITBUCKET_BRANCH

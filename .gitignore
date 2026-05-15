@@ -1,0 +1,23 @@
+*.class
+
+# Package Files #
+*.war
+*.ear
+
+*.ser
+
+# Intellij idea files
+*.iml
+*.ipr
+*.iws
+.idea/
+
+.classpath
+.project
+.settings/
+target/
+tmp/
+
+.DS_Store
+**/.DS_Store
+service/src/main/resources/firebase*.json

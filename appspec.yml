@@ -1,0 +1,14 @@
+version: 0.0
+os: linux
+hooks:
+  ApplicationStop:
+    - location: resources/scripts/stop_application
+      timeout: 300
+  BeforeInstall:
+    - location: resources/scripts/install_dependencies
+      timeout: 300
+  ApplicationStart:
+    - location: resources/scripts/start_application
+      timeout: 300
+  ValidateService:
+    - location: resources/scripts/basic_health_check.sh

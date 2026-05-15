@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -e
+
+sudo su
+
+service tomcat7 stop

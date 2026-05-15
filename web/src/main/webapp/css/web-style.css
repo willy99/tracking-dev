@@ -1,0 +1,69 @@
+/* Акуратні стилі для калькулятора */
+    .neat-form { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+    /* Головний контейнер на 90% екрану */
+    .wide-content { width: 90%; max-width: 1800px; margin: 0 auto; }
+
+    /* Сітка першого рядка (4 колонки) */
+    .top-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1.5fr; /* 4 колонки різних пропорцій */
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    /* Маленькі акуратні бокси */
+    .neat-box { background: #fff; border: 1px solid #e1e4e8; border-radius: 6px; padding: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); display: flex; flex-direction: column;}
+    .neat-box .box-title { display: block; font-size: 12px; font-weight: 600; text-transform: uppercase; color: #586069; margin-bottom: 12px; border-bottom: 1px solid #eaecef; padding-bottom: 5px; width: 100%;}
+
+    /* Компактні інпути */
+    .input-compact { width: 100%; padding: 8px 10px; font-size: 13px; border: 1px solid #d1d5da; border-radius: 4px; outline: none; transition: 0.2s; box-sizing: border-box; }
+    .input-compact:focus { border-color: #0366d6; box-shadow: 0 0 0 3px rgba(3,102,214,0.3); }
+
+    /* Характеристики вантажу (4-й блок) */
+    .cargo-details-wrapper { text-align: center; flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .cargo-details-wrapper img { height: 60px; object-fit: contain; margin-bottom: 10px; }
+    .cargo-details-title { font-size: 14px; font-weight: bold; color: #24292e; margin-bottom: 5px; }
+    .badge-pf { font-size: 11px; background: #f1f8ff; color: #0366d6; padding: 4px 8px; border-radius: 12px; font-weight: 600; border: 1px solid #c8e1ff; display: inline-block;}
+
+    /* Поля для розмірів в один ряд */
+    .dim-grid { display: flex; gap: 10px; margin-top: 15px; }
+    .dim-grid input { text-align: center; }
+
+    /* Гарні кастомні чекбокси */
+    .custom-check-wrapper { display: flex; flex-direction: column; gap: 12px; }
+    .custom-checkbox { position: relative; padding-left: 28px; cursor: pointer; font-size: 13px; color: #24292e; display: inline-block; user-select: none; }
+    .custom-checkbox input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
+    .checkmark { position: absolute; top: -2px; left: 0; height: 18px; width: 18px; background-color: #fafbfc; border: 1px solid #d1d5da; border-radius: 4px; transition: 0.2s; }
+    .custom-checkbox:hover input ~ .checkmark { background-color: #f3f4f6; }
+    .custom-checkbox input:checked ~ .checkmark { background-color: #0366d6; border-color: #0366d6; }
+    .checkmark:after { content: ""; position: absolute; display: none; left: 6px; top: 2px; width: 4px; height: 9px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+    .custom-checkbox input:checked ~ .checkmark:after { display: block; }
+
+    /* Контейнери горизонтальними строчками */
+    .ct-strip-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;}
+    .ct-strip { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; flex-direction: row;}
+    .ct-name { font-size: 14px; font-weight: 700; color: #24292e; width: 120px; }
+    .ct-inputs { display: flex; gap: 20px; align-items: center; }
+    .ct-input-group { display: flex; align-items: center; gap: 8px; }
+    .ct-input-group label { margin: 0; font-size: 12px; font-weight: 500; color: #586069; white-space: nowrap; }
+    .ct-input-group input { width: 100px; text-align: right; }
+
+    .table-responsive { overflow-x: auto; width: 100%; }
+
+    /* АДАПТИВНІСТЬ (Медіа-запити) */
+    @media (max-width: 1200px) {
+        .top-row { grid-template-columns: 1fr 1fr; } /* 2х2 сітка на середніх екранах */
+    }
+    @media (max-width: 768px) {
+        .top-row { grid-template-columns: 1fr; } /* 1 колонка на мобільних */
+        .ct-strip { flex-direction: column; align-items: flex-start; gap: 15px; }
+        .ct-inputs { width: 100%; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+        .ct-input-group input { width: 100%; }
+        .dim-grid { flex-direction: column; } /* Розміри один під одним на мобілці */
+    }
+    .selected-row {
+        background-color: #e8f4fd !important;
+        box-shadow: inset 4px 0 0 0 #0366d6; /* Синя лінія зліва */
+    }
+    .common-table tbody tr:hover { background-color: #f6f8fa; }

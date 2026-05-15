@@ -1,0 +1,43 @@
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    outline: none;
+}
+p{
+    margin: 5px 0 10px 0;
+}
+a, input, textarea{
+    box-shadow: none;
+    text-decoration: none;
+}
+ul, ol{
+    list-style: none;
+}
+
+input::-webkit-input-placeholder {opacity: 1;}
+input::-moz-placeholder {opacity: 1;}
+input:-moz-placeholder {opacity: 1;}
+input:-ms-input-placeholder {opacity: 1;}
+input:placeholder {opacity: 1;}
+
+textarea::-webkit-input-placeholder {opacity: 1;}
+textarea::-moz-placeholder {opacity: 1;}
+textarea:-moz-placeholder {opacity: 1;}
+textarea:-ms-input-placeholder {opacity: 1;}
+textarea:placeholder {opacity: 1;}
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+main,
+menu,
+nav,
+section,
+summary {
+  display: block;
+}

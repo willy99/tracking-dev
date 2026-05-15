@@ -1,0 +1,1 @@
+wsimport -keep -verbose -Xauthfile "onec/auth.txt" "http://10.1.0.250:8080/expeditor/ws/getOrders.1cws?wsdl"

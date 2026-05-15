@@ -1,0 +1,110 @@
+.highlighted {
+    background: yellow
+}
+
+.select-optimal-width{
+    width: 170px;
+}
+
+#combobox {
+    border: 1px solid black;
+    width: 70px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+
+/* numbered buttons */
+#status-buttons                 {  }
+#status-buttons a               { color:#FFF; display:inline-block; font-size:12px; margin-right:10px; text-align:center; text-transform:uppercase; }
+#status-buttons a:hover         { text-decoration:none; }
+#status-buttons span            { background:#080808; display:block; height:30px; margin:0 auto 10px; padding-top:5px; width:30px;
+    border-radius:50%; }
+
+
+
+
+.css-form input.ng-invalid.ng-touched {
+    border-color:#dd6464!important;
+}
+
+.css-form input.ng-valid.ng-touched {
+    transition:border-color .3s;
+    border-color:#38aa38!important;
+}
+
+.css-form .hint {
+    display:block;
+    color: red;
+}
+
+
+/* additional to bundle.css */
+.common-table tbody tr.inactive td{
+    color: #009999
+}
+
+
+
+
+
+
+
+
+
+
+/* -------------------- Select Box Styles: danielneumann.com Method */
+/* -------------------- Source: http://danielneumann.com/blog/how-to-style-dropdown-with-css-only/ */
+#mainselection select {
+    border: 0;
+    color: #333;
+    background: transparent;
+    font-size: 15px;
+    padding: 2px 10px;
+    width: 378px;
+    -webkit-appearance: none;
+    height:60px;
+}
+
+#mainselection {
+    overflow:hidden;
+    width:400px;
+    border:1px solid #64c9dd;
+    background: #fff;
+    height:60px;
+    float:right;
+
+}
+
+
+.spinner{
+    content:'';
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(255,255,255,.6) url(../images/spinner.svg) no-repeat center;
+    z-index:10000000
+}
+
+
+.error{
+    color:#ce4949
+}
+
+.pop-up-message{
+    height:0;
+    overflow:hidden;
+    opacity:0;
+    transition:opacity .3s,height .3s
+}
+.pop-up-message.active{
+    opacity:1
+}
+.pop-up-message.error{
+    color:#ce4949
+}
+.pop-up-message.success{
+    color:#287b32
+}

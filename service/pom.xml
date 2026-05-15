@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>tracking-rest-app</artifactId>
+        <groupId>tracking-rest</groupId>
+        <version>1.25-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>tracking-rest-service</artifactId>
+    <name>Tracking REST Service</name>
+    <packaging>jar</packaging>
+    <description>Tracking REST Service</description>
+
+    <build>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.16</version>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                    <generatedSourcesDirectory>${basedir}/src/test/generated/java</generatedSourcesDirectory>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>tracking-rest</groupId>
+            <artifactId>tracking-rest-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey.contribs</groupId>
+            <artifactId>jersey-freemarker</artifactId>
+            <version>1.17</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.ejb</groupId>
+            <artifactId>ejb-api</artifactId>
+            <version>3.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz</artifactId>
+            <version>${quartz}</version>
+            <exclusions>
+            <exclusion>
+                <groupId>c3p0</groupId>
+                <artifactId>c3p0</artifactId>
+            </exclusion>
+        </exclusions>
+        </dependency>
+        <dependency>
+        	<groupId>org.quartz-scheduler</groupId>
+        	<artifactId>quartz-oracle</artifactId>
+        	<version>${quartz}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch</artifactId>
+            <version>0.1.51</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-server</artifactId>
+            <version>${jersey-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.9</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.sun.jersey.contribs</groupId>
+            <artifactId>jersey-guice</artifactId>
+            <version>1.13</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey.contribs</groupId>
+            <artifactId>jersey-multipart</artifactId>
+            <version>${jersey-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>5.2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.99soft.guice</groupId>
+            <artifactId>guartz</artifactId>
+            <version>1.3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.quartz-scheduler</groupId>
+                    <artifactId>quartz</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+            <version>${freemarker}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>1.4.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>fop</artifactId>
+            <version>1.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.avalon.framework</groupId>
+                    <artifactId>avalon-framework-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.avalon.framework</groupId>
+                    <artifactId>avalon-framework-impl</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>avalon-framework</groupId>
+            <artifactId>avalon-framework-impl</artifactId>
+            <version>4.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>avalon-framework</groupId>
+            <artifactId>avalon-framework-api</artifactId>
+            <version>4.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.28</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+        	<groupId>com.google.zxing</groupId>
+        	<artifactId>core</artifactId>
+        	<version>1.7</version>
+        </dependency>
+        <dependency>
+        	<groupId>org.swinglabs</groupId>
+        	<artifactId>pdf-renderer</artifactId>
+        	<version>1.0.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>1.17.1</version>
+        </dependency>
+        <dependency>
+        	<groupId>xalan</groupId>
+        	<artifactId>xalan</artifactId>
+        	<version>2.7.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.10.8</version>
+        </dependency>
+        <!-- JMS support -->
+        <!-- https://mvnrepository.com/artifact/javax.jms/javax.jms-api -->
+        <dependency>
+            <!-- jsoup HTML parser library @ http://jsoup.org/ -->
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.10.1</version>
+        </dependency>
+
+    </dependencies>
+
+
+    <profiles>
+        <profile>
+            <id>local</id>
+            <properties>
+                <connection.url><![CDATA[jdbc:mysql://localhost:3306/trackingdev?useSSL=false&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10&amp;useUnicode=true&amp;characterEncoding=utf-8]]></connection.url>
+                <connection.user><![CDATA[root]]></connection.user>
+                <connection.password><![CDATA[Zkryk3hdl]]></connection.password>
+            </properties>
+        </profile>
+        <profile>
+            <id>dev</id>
+            <properties>
+
+                <!--connection.url><![CDATA[jdbc:mysql://tracking-db-instance.cfeqoxcdnbrh.eu-central-1.rds.amazonaws.com:3306/trackingdev?autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10&amp;useUnicode=true&amp;characterEncoding=utf-8]]></connection.url>
+                <connection.user><![CDATA[pzhelnov]]></connection.user>
+                <connection.password><![CDATA[Zkryk3hdl]]></connection.password-->
+
+                <!--connection.url><![CDATA[jdbc:mysql://10.1.0.248:3306/trackingdev?useSSL=false&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10&amp;useUnicode=true&amp;characterEncoding=utf-8]]></connection.url-->
+                <connection.url><![CDATA[jdbc:mysql://localhost:3306/trackingdev?useSSL=false&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10&amp;useUnicode=true&amp;characterEncoding=utf-8]]></connection.url>
+                <connection.user><![CDATA[artinlog]]></connection.user>
+                <connection.password><![CDATA[Zkryk3hdl]]></connection.password>
+
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <connection.url><![CDATA[jdbc:mysql://localhost:3306/trackingdev?useSSL=false&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10&amp;useUnicode=true&amp;characterEncoding=utf-8]]></connection.url>
+                <connection.user><![CDATA[artinlog]]></connection.user>
+                <connection.password><![CDATA[Zkryk3hdl]]></connection.password>
+            </properties>
+        </profile>
+
+
+    </profiles>
+
+</project>

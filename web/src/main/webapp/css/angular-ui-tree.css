@@ -1,0 +1,80 @@
+/* UI TREE */
+/* Styles go here */
+.tree-view-wrapper, .tree-view-wrapper ul { list-style:none; }
+.show-hide, .edit{cursor:pointer;}
+.tree-checkbox{margin: 6px !important;}
+.edit{margin-right: 6px !important;}
+.edit i {color: #D77105;}
+.hide{display:none;}
+.show{display:block;}
+.inline{float:left;}
+
+
+
+.treeHTML {
+    line-height: normal;
+}
+.treeHTML label {
+    position: relative;
+    display: block;
+    padding: 0 0 0 1.2em;
+}
+.treeHTML label:not(:nth-last-of-type(1)) {
+    border-left: 1px solid #94a5bd;
+}
+.treeHTML label:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1.1em;
+    height: .5em;
+    border-bottom: 1px solid #94a5bd;
+}
+.treeHTML label:nth-last-of-type(1):before {
+    border-left: 1px solid #94a5bd;
+}
+.treeHTML fieldset,
+.treeHTML fieldset[class=""] .expand {
+    position: absolute;
+    visibility: hidden;
+    margin: 0;
+    padding: 0 0 0 2em;
+    border: none;
+}
+.treeHTML fieldset:not(:last-child) {
+    border-left: 1px solid #94a5bd;
+}
+.treeHTML .expand {
+    position: relative;
+    visibility: visible;
+}
+.treeHTML > fieldset > legend,
+.treeHTML .expand > fieldset > legend {
+    position: absolute;
+    left: -5px;
+    top: 0;
+    height: 7px;
+    width: 7px;
+    margin-top: -1em;
+    padding: 0;
+    border: 1px solid #94a5bd;
+    border-radius: 2px;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    background-color: #fff;
+    background-image: linear-gradient(to left, #1b4964, #1b4964), linear-gradient(#1b4964, #1b4964), linear-gradient(315deg, #a0b6d8, #e8f3ff 60%, #fff 60%);
+    background-size: 1px 5px, 5px 1px, 100% 100%;
+    visibility: visible;
+    cursor: pointer;
+}
+.treeHTML fieldset[class=""] .expand fieldset legend {
+    visibility: hidden;
+}
+.treeHTML .expand > legend {
+    background-image: linear-gradient(#1b4964, #1b4964) !important;
+    background-size: 5px 1px !important;
+}
+
+
+/* END ANGULAR UI TREE */

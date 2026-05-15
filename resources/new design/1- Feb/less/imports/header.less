@@ -1,0 +1,75 @@
+.header-wrap{
+    margin: auto;
+    max-width: 1600px;
+    background-color: #e7eaed;
+    header{
+        height: 80px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 50px;
+        .logo{
+            margin: 0 0 12px;
+        }
+        .menu{
+            display: flex;
+            justify-content: space-between;
+            li{
+                position: relative;
+                line-height: 38px;
+                a{
+                    color: #384352;
+                    font-size: 14px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 1.89px;
+                }
+                &.current-page{
+                    a{
+                        color: #a0a5ac;
+                    }
+                }
+                &.has-sub-menu{
+                    padding: 0 29px 0 0;
+                    &::after{
+                        content: '';
+                        position: absolute;
+                        top: 13px;
+                        right: 0;
+                        border-top: 9px solid #384452;
+                        border-right: 6px solid transparent;
+                        border-left: 6px solid transparent;
+                    }
+                }
+                &.settings{
+                    a{
+                        &::before{
+                            content: '';
+                            display: inline-block;
+                            background: url('../../images/settings-icon.png') no-repeat center/contain;
+                            width: 24px;
+                            height: 24px;
+                            vertical-align: middle;
+                            margin: 0 9px 0 0;
+                        }
+                    }
+                }
+                &.user{
+                    a{
+                        .icon{
+                            border-radius: 50%;
+                            vertical-align: top;
+                            margin: 0 8px 0 0;
+                        }
+                        .name{
+                            text-decoration: underline;
+                        }
+                    }
+                }
+                &:nth-child(n+2){
+                    margin: 0 0 0 60px;
+                }
+            }
+        }
+    }
+}
