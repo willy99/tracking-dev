@@ -66,11 +66,15 @@ public class FlexOrderDaoImpl implements FlexOrderDao {
         for (FlexOrder existingOrder: existingOrders) {
             FlexOrder newOrder = orderMap.get(existingOrder.getOrderNumber());
             existingOrder.setExecutionDate(newOrder.getExecutionDate());
-            if (existingOrder.getOrderType() != FlexOrderTypeEnum.IMPORT && (existingOrder.getExportContainerQty() == null || existingOrder.getExportFlexQty() == null || !existingOrder.getExportContainerQty().equals(newOrder.getExportContainerQty()))) {
-                if (existingOrder.getExportContainerQty() == null) {
+            if (existingOrder.getOrderType() != FlexOrderTypeEnum.IMPORT && (existingOrder.getExportContainerQty() == null ||
+                    existingOrder.getExportContainerQty().equals(0) ||
+                    existingOrder.getExportFlexQty() == null ||
+                    existingOrder.getExportFlexQty().equals(0) ||
+                    !existingOrder.getExportContainerQty().equals(newOrder.getExportContainerQty()))) {
+                if (existingOrder.getExportContainerQty() == null || existingOrder.getExportContainerQty().equals(0)) {
                     existingOrder.setExportContainerQty(newOrder.getExportContainerQty());
                 }
-                if (existingOrder.getExportFlexQty() == null) {
+                if (existingOrder.getExportFlexQty() == null || existingOrder.getExportFlexQty().equals(0)) {
                     existingOrder.setExportFlexQty(newOrder.getExportFlexQty());
                 }
                 ordersToRecalculate.put(existingOrder.getId(), existingOrder);
