@@ -736,24 +736,30 @@ public class FlexServiceImpl implements FlexService {
 
         //preparation for all the staff
         Map<String, String> serialNumberToContainerMap = new HashMap<>();
+        // Цей Set тепер просто збирає унікальні номери контейнерів для запиту в БД
         Set<String> containerNumberSet = new HashSet<>();
         Set<String> errorMessages = new HashSet<>();
         Set<String> orderNumberSet = new HashSet<>();
+
         for (FlexController.ContainerFlexParams param: params.getFlexInContainerList()) {
-            if (!containerNumberSet.add(param.getСontainerNum())) {
-                errorMessages.add("Container " + param.getСontainerNum() + " is already used ");
-                continue;
-            }
-            String previousValue = serialNumberToContainerMap.put(param.getSerialNumber(), param.getСontainerNum());
-            if (previousValue != null) {
-                errorMessages.add("Flex " + param.getSerialNumber() + " has been already mentioned, for " + previousValue + " container number");
+            // Збираємо унікальні контейнери без генерації помилок
+            containerNumberSet.add(param.getСontainerNum());
+
+            // Перевіряємо чи не дублюється сам флекс у вхідному запиті
+            String previousContainer = serialNumberToContainerMap.put(param.getSerialNumber(), param.getСontainerNum());
+            if (previousContainer != null) {
+                errorMessages.add("Flex " + param.getSerialNumber() + " has been already mentioned, for " + previousContainer + " container number");
             }
         }
+
         if (serialNumberToContainerMap.isEmpty()) {
             throw new ValidationException("No data to process");
         }
+
         List<Flex> flexList = flexDao.getBySerialNumbers(new ArrayList<>(serialNumberToContainerMap.keySet()));
-        List<FlexContainer> flexContainers = flexContainerDao.getContainersByNumbers(new ArrayList<>(serialNumberToContainerMap.values()));
+        // Передаємо лише унікальні номери контейнерів, використовуючи containerNumberSet замість values() мапи
+        List<FlexContainer> flexContainers = flexContainerDao.getContainersByNumbers(new ArrayList<>(containerNumberSet));
+
         Map<String, Flex> flexMap = new HashMap<>();
         if (flexList.isEmpty()) {
             errorMessages.add("No flexes was found to process");
