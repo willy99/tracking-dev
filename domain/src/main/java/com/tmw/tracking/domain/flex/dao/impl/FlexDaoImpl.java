@@ -142,7 +142,7 @@ public class FlexDaoImpl implements FlexDao {
 
     @Override
     public List<Flex> getFlexListForMountedOrders(Date lastUpdated) {
-        TypedQuery<Flex> query = entityManager.createQuery("from Flex where exportOrder.status = :status and exportOrder.orderType = :orderType and lastUpdated > :lastUpdated and deleted = false and tenant = :tenant order by exportOrder.orderNumber asc ", Flex.class);
+        TypedQuery<Flex> query = entityManager.createQuery("from Flex where exportOrder.status = :status and exportOrder.orderType = :orderType and exportOrder.lastUpdated > :lastUpdated and deleted = false and tenant = :tenant order by exportOrder.orderNumber asc ", Flex.class);
         query.setParameter("tenant", DomainUtils.getCurrentUser().getTenant());
         query.setParameter("status", FlexStatusEnum.COMPLETED);
         query.setParameter("orderType", FlexOrderTypeEnum.MOUNT);
