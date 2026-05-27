@@ -802,6 +802,9 @@ public class FlexController extends BaseController {
             System.out.print(i + 1 + " -> ");
             // Create a loop to print cell values in a row
             List<String> rowList = new ArrayList<>();
+            if (row == null) {
+                continue;
+            }
             for (int j = 0; j < row.getLastCellNum(); j++) {
                 // Print Excel data in console
                 System.out.print(row.getCell(j) + " || ");

@@ -508,7 +508,7 @@ public class FlexServiceImpl implements FlexService {
             messages.add("Trying to attach flex to order in mounted state");
             return false;
         }
-        if (flexCount >= flexOrder.getExportContainerQty()) {
+        if (flexCount >= flexOrder.getExportFlexQty()) {
             messages.add("The number of attached flex is more than set for the order (" + flexOrder.getExportContainerQty() + ")");
         }
         if (FlexOrderTypeEnum.EXPORT != flexOrder.getOrderType() && FlexOrderTypeEnum.MOUNT != flexOrder.getOrderType()) {
@@ -662,7 +662,7 @@ public class FlexServiceImpl implements FlexService {
             return false;
         }
         if (flexCount >= flexOrder.getExportContainerQty()) {
-            messages.add("The number of attached flex is more than set for the order (" + flexOrder.getExportContainerQty() + ")");
+            messages.add("The number of attached flex is more than set for the order " + flexOrder.getOrderNumber() + " (" + flexOrder.getExportContainerQty() + ")");
             return false;
         }
         if (flex.getExportOrder() == null) {
@@ -674,7 +674,29 @@ public class FlexServiceImpl implements FlexService {
             return false;
         }
         if (FlexStatusEnum.COMPLETED == flex.getExportOrder().getStatus()) {
-            messages.add("Flex order is not in proper state (" + flex.getExportOrder().getStatus() + ")");
+            messages.add("Flex order " + flex.getExportOrder().getOrderNumber() + " is not in proper state (" + flex.getExportOrder().getStatus() + ")");
+            return false;
+        }
+        if (flex.isDeleted()) {
+            messages.add("Flex " + flex.getSerialNumber() + " has been removed");
+            return false;
+        }
+        return true;
+    }
+
+    private Boolean validateOnAttachToContainerBatch(Integer flexCount, FlexOrder flexOrder, Flex flex, Set<String> messages) {
+        if (flex.isDeleted()) {
+            messages.add("Flex has been removed");
+            return false;
+        }
+        FlexWarehouse writtenOffWarehouse = flexWarehouseDao.getWriteOffWarehouse();
+        if (flex.getWarehouse().equals(writtenOffWarehouse)) {
+            String warehouse = (flex.getWarehouse() != null? " Located at " + flex.getWarehouse().getName() : "");
+            messages.add("Flex " + flex.getSerialNumber() + " is not in proper warehouse." + warehouse);
+            return false;
+        }
+        if (flex.getExportOrder() == null) {
+            messages.add("Flex " + flex.getSerialNumber() + " does not have an export order assigned");
             return false;
         }
         if (flex.isDeleted()) {
@@ -797,7 +819,7 @@ public class FlexServiceImpl implements FlexService {
                 continue;
             }
 
-            if (validateOnAttachToContainer(flexCount, exportOrder, flex, errorMessages)) {
+            if (validateOnAttachToContainerBatch(flexCount, exportOrder, flex, errorMessages)) {
                 FlexContainer flexContainer = flexContainerMap.get(param.getСontainerNum());
                 if (flexContainer == null) {
                     //create container
@@ -814,18 +836,22 @@ public class FlexServiceImpl implements FlexService {
                 }
 
                 // attach
-                flex.setMountContainer(flexContainer);
-                flex.setMountDate(new Date());
+                if (flex.getMountContainer() != null && flex.getMountContainer().getId().equals(flexContainer.getId())) {
+                    // already mounted to a container, no need to attach again
+                } else {
+                    flex.setMountContainer(flexContainer);
+                    flex.setMountDate(new Date());
 
-                flexToUpdate.add(flex);
-                flexCount++;
+                    flexToUpdate.add(flex);
+                    flexCount++;
+                }
             }
         }
 
         flexContainerDao.upsertAll(containersToAdd);
         flexDao.updateBatch(new ArrayList<>(), flexToUpdate);
         //update container status, check for completed state
-        if (flexCount.equals(exportOrder.getExportContainerQty())) {
+        if (flexCount.equals(exportOrder.getExportFlexQty())) {
             exportOrder.setStatus(FlexStatusEnum.COMPLETED);
             flexOrderDao.update(exportOrder);
         } else if (exportOrder.getStatus() != FlexStatusEnum.IN_PROGRESS) {
