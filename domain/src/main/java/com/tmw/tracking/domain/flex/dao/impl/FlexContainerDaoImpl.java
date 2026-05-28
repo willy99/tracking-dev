@@ -4,6 +4,7 @@ import com.google.inject.Singleton;
 import com.tmw.tracking.Transaction;
 import com.tmw.tracking.domain.flex.dao.FlexContainerDao;
 import com.tmw.tracking.domain.flex.entities.FlexContainer;
+import com.tmw.tracking.domain.flex.entities.FlexOrderTypeEnum;
 import com.tmw.tracking.domain.flex.entities.FlexStatusEnum;
 import com.tmw.tracking.domain.flex.to.FlexContainerTO;
 import com.tmw.tracking.utils.DomainUtils;
@@ -103,8 +104,11 @@ public class FlexContainerDaoImpl implements FlexContainerDao {
         String searchClause = (searchString != null && !searchString.isEmpty())? " and c.conatinerNumber = :searchString": "";
         String lastUpdatedClause = (lastUpdated != null)? " and c.importOrder.lastUpdated > :lastUpdated ": "";
 
-        String hqlQuery = "SELECT c.containerNumber, c.importFlexQty, c.status, c.lastUpdated, count(f) from FlexContainer c left join c.importFlexes f " +
-                "where (f.deleted is null or f.deleted = false) and c.importOrder is not null and c.tenant = :tenant " + lastUpdatedClause + searchClause + "" +
+        String hqlQuery = "SELECT c.containerNumber, c.importFlexQty, c.status, c.lastUpdated, count(f) " +
+                "from FlexContainer c " +
+                "left join c.importFlexes f " +
+                "left join c.importOrder o " +
+                "where (f.deleted is null or f.deleted = false) and c.importOrder is not null and o.orderType = :orderType and c.tenant = :tenant " + lastUpdatedClause + searchClause + "" +
                 " group by c.containerNumber, c.importFlexQty, c.status, c.lastUpdated";
         Query query = entityManager.createQuery(hqlQuery);
         query.setParameter("tenant", DomainUtils.getCurrentUser().getTenant());
@@ -114,6 +118,7 @@ public class FlexContainerDaoImpl implements FlexContainerDao {
         if (!searchClause.isEmpty()) {
             query.setParameter("searchString", searchString);
         }
+        query.setParameter("orderType", FlexOrderTypeEnum.IMPORT);
         List<FlexContainerTO> flexContainerTOS = new ArrayList<>();
 
         List<Object[]> resultList = query.getResultList();
