@@ -206,6 +206,7 @@ public class FlexServiceImpl implements FlexService {
                 }
                 flexContainer.setExportFlexQty(container.flexQty);
                 flexContainer.setExportOrder(flexOrder);
+                flexContainer.setImportOrder(null);
                 flexContainer.setContainerNumber(ValidationUtils.validateFlexContainerNum(container.containerNumber));
                 if (!addedContainerNumberSet.contains(container.containerNumber)) {
                     flexContainers.add(flexContainer);
@@ -330,6 +331,11 @@ public class FlexServiceImpl implements FlexService {
     @Override
     public List<FlexOrderTO> getMountedOrdersWithStatistic(String searchString) {
         return flexOrderDao.getMountedOrdersWithStatistic(searchString, getLastUpdatedDateByConfig());
+    }
+
+    @Override
+    public List<FlexOrderTO> getAllFlexOrdersWithStatistic(com.tmw.tracking.domain.flex.to.SearchFilterTO filter) {
+        return flexOrderDao.getAllOrdersWithStatistic(filter);
     }
 
 

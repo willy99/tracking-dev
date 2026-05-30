@@ -2,6 +2,7 @@ package com.tmw.tracking.domain.flex.dao;
 
 import com.tmw.tracking.domain.flex.entities.FlexOrder;
 import com.tmw.tracking.domain.flex.to.FlexOrderTO;
+import com.tmw.tracking.domain.flex.to.SearchFilterTO;
 
 import java.util.Date;
 import java.util.List;
@@ -30,5 +31,7 @@ public interface FlexOrderDao {
     List<FlexOrderTO> getExportOrdersWithStatistic(String searchString, Date lastUpdated);
 
     List<FlexOrderTO> getMountedOrdersWithStatistic(String searchString, Date lastUpdated);
+
+    List<FlexOrderTO> getAllOrdersWithStatistic(SearchFilterTO filter);
 
 }

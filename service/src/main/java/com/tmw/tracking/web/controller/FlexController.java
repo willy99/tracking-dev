@@ -954,6 +954,22 @@ public class FlexController extends BaseController {
         }
     }
 
+    // web (Flex Orders page)
+    @POST
+    @Path("/getAllFlexOrders")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @MethodCall(requiredPermission = PermissionType.LOGISTIC_READ)
+    public List<FlexOrderTO> getAllFlexOrders(SearchFilterTO filter,
+                                              @QueryParam("token") final String token,
+                                              @Context UriInfo uriInfo,
+                                              @Context HttpServletResponse response) {
+        if (filter != null && !StringUtils.isBlank(filter.getSearchQuery())) {
+            filter.setSearchQuery(filter.getSearchQuery().toUpperCase());
+        }
+        return flexService.getAllFlexOrdersWithStatistic(filter);
+    }
+
     public static class FlexBatchParams {
         private List<String> serialNumbers;
 

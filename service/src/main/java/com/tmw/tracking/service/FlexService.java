@@ -125,4 +125,6 @@ public interface FlexService {
 
     List<FlexOrderTO> getMountedOrdersWithStatistic(String searchString);
 
+    List<FlexOrderTO> getAllFlexOrdersWithStatistic(com.tmw.tracking.domain.flex.to.SearchFilterTO filter);
+
 }

@@ -18,6 +18,7 @@ public class FlexOrderTO {
     private FlexStatusEnum status;
     private Set<FlexContainerTO> containers = new HashSet<>();
     private Date updatedDate;
+    private Date createdDate;
     private Integer flexQty; //export flex qty expected
     private Integer processedFlexQty; //export flex qty actual
     private Long id;
@@ -66,6 +67,14 @@ public class FlexOrderTO {
 
     public void setUpdatedDate(Date updatedDate) {
         this.updatedDate = updatedDate;
+    }
+
+    public Date getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
     }
 
     public Set<FlexTO> getWrittenOffFlexes() {

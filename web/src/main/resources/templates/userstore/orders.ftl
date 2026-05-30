@@ -1,224 +1,212 @@
 <#assign top_nav_selected = "trackingOrdersManagement">
-<#assign page_title = "Order List Management">
+<#assign page_title = "Flex Order Management">
 <#include "*/header.ftl"/>
 
-<script type="text/ng-template" id="expandAll.html">
-    <button type="button" ng-click="expandAll()">
-        <span>{{allExpanded ? '-' : '+'}}</span>
-    </button>
-</script>
+<main class="page" ng-app="TrackingOrderManagement">
+    <div class="spinner" ng-show="loading"></div>
 
-<fieldset ng-app="TrackingOrderManagement">
+    <div class="block main-block">
+        <div class="content">
+            <h1>Flex Order Management</h1>
 
-    <div ng-controller="trackingOrderController">
+            <div ng-controller="flexOrderController">
 
-        <div class="row">
-            <div class="span6">
-                <div class="controls form-search well">
-                    <input id="searchtext" type="text" class="span2 offset2" placeholder="Search for" ng-model="searchtext">
-                    <button id="search" class="btn" type="button" ng-click="search()">Search</button>
-                    <img id="loading" src="${contextPath}/img/ajax-loader.gif" alt="Loading..." ng-show="loading"/>
+                <!-- ============ FILTER BAR ============ -->
+                <div class="top-menu">
+                    <label class="filter-label">Order #</label>
+                    <input type="text" class="input-medium" placeholder="Order number"
+                           ng-model="filter.searchQuery" ng-keyup="$event.keyCode == 13 && search()">
+
+                    <label class="filter-label">From</label>
+                    <input type="date" class="input-medium" ng-model="filter.dateFrom">
+
+                    <label class="filter-label">To</label>
+                    <input type="date" class="input-medium" ng-model="filter.dateTo">
+
+                    <label class="filter-label">Type</label>
+                    <select class="input-medium" ng-model="filter.orderType">
+                        <option value="">All types</option>
+                        <option value="IMPORT">Import</option>
+                        <option value="EXPORT">Export</option>
+                        <option value="MOUNT">Mount</option>
+                    </select>
+
+                    <button class="button button-blue" type="button" ng-click="search()">Filter</button>
+                    <button class="button button-gray" type="button" ng-click="clearFilters()">Clear</button>
+                    <img src="${contextPath}/img/ajax-loader.gif" alt="Loading..." ng-show="loading"/>
                 </div>
 
-                <span id="errorMessage" class="text-error">{{errorMessage}}</span>
+                <span class="text-error" ng-show="errorMessage">{{errorMessage}}</span>
 
-                <div class="controls form-search well">
-                    <table class="table table-bordered table-striped" ng-table="tableParams">
-                        <tr ng-repeat-start="t in $data">
-                            <td header="'expandAll.html'">
-                                <button ng-click="t.expanded = !t.expanded">
-                                    <span>{{t.expanded ? '-' : '+'}}</span>
-                                </button>
-                            </td>
+                <!-- ============ SUMMARY ============ -->
+                <p class="hint" ng-show="!loading && orders.length > 0">
+                    Showing <strong>{{visibleOrders().length}}</strong>
+                    of <strong>{{orders.length}}</strong> orders
+                    <span ng-show="orders.length >= 500"> (result capped at 500 — narrow the date range)</span>
+                </p>
 
-                            <td title="'# B/L'" sortable="'order1c'">
-                                <span ng-bind-html="t.order1c | highlight:searchtext | trusted"></span>
-                            </td>
-
-                            <td title="'Trend'" sortable="'trend'">
-                                <span ng-bind-html="t.trend | trusted"></span>
-                            </td>
-
-                            <td title="'Container Line'" sortable="'containerLine'">
-                                <span ng-bind-html="t.trackingLine.name | highlight:searchtext | trusted"></span>
-                            </td>
-
-                            <td title="'Port'" sortable="'port'">
-                                <span ng-bind-html="t.terminal.name | highlight:searchtext | trusted"></span>
-                            </td>
-
-                            <td title="'Container Qty'" sortable="'containerQty'">
-                                {{t.containerQty}}
-                            </td>
-
-                            <td title="'Current Status'" sortable="'status'">
-                                <div ng-if="t.workflow.length>0">
-                                    {{t.currentStatus}}
-                                    <!--div ng-repeat="wf in t.workflow">
-                                        <div class="row">
-                                            <div class="span2">{{wf.status}}</div>
-                                            <div class="span2">{{wf.dealDate | date:'short'}}</div>
-                                        </div>
-                                    </div-->
-                                </div>
-                                <div ng-if="t.workflow.length==0">
-                                    {{t.currentStatus}}
-                                </div>
-                            </td>
-                        </tr>
-
-                        <tr ng-repeat-end ng-if="t.expanded">
-                            <td colspan="7">
-                                <table class="table table-bordered table-striped">
-                                    <tr>
-                                        <th width="20%">Number</th>
-                                        <th width="10%">Type</th>
-                                        <th width="20%">Cargo/Customer #</th>
-                                        <th width="10%">Weight</th>
-                                        <th width="20%">Driver</th>
-                                        <th width="10%">Truck #</th>
-                                        <th width="10%">Chassis #</th>
-                                    </tr>
-                                    <tr ng-repeat="details in t.orderDetails" ng-click="currentLocation(details.id)"
-                                        ng-class="{active: details.id === idSelectedDetail}">
-                                        <td>
-                                            <span ng-bind-html="details.containerNumber | highlight:searchtext | trusted"></span>
-                                        </td>
-                                        <td>{{details.containerType.type}}</td>
-                                        <td>?</td>
-                                        <td>{{details.weight}}</td>
-                                        <td>
-                                            <span ng-bind-html="details.driver.firstName | highlight:searchtext | transliterate | trusted"></span>,
-                                            <span ng-bind-html="details.driver.lastName | highlight:searchtext | transliterate | trusted"></span>
-                                            <br> {{details.driver.mobile}}
-                                        </td>
-                                        <td>
-                                            <span ng-bind-html="details.driver.trailerNumber | highlight:searchtext | trusted"></span>
-                                        </td>
-                                        <td>
-                                            <span ng-bind-html="details.driver.tractorNumber | highlight:searchtext | trusted"></span>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
+                <!-- ============ TABLE ============ -->
+                <table class="common-table">
+                    <thead>
+                    <tr>
+                        <th ng-click="setSort('orderNumber')">
+                            <span class="title">Order Number</span><div class="arrow" ng-show="sortField=='orderNumber'" ng-class="{'arrow-down': sortReverse}"></div>
+                        </th>
+                        <th ng-click="setSort('orderType')">
+                            <span class="title">Type</span><div class="arrow" ng-show="sortField=='orderType'" ng-class="{'arrow-down': sortReverse}"></div>
+                        </th>
+                        <th ng-click="setSort('status')">
+                            <span class="title">Status</span><div class="arrow" ng-show="sortField=='status'" ng-class="{'arrow-down': sortReverse}"></div>
+                        </th>
+                        <th ng-click="setSort('processedFlexQty')" title="Flexes attached (Export/Mount) or imported (Import)">
+                            <span class="title">Flexes</span><div class="arrow" ng-show="sortField=='processedFlexQty'" ng-class="{'arrow-down': sortReverse}"></div>
+                        </th>
+                        <th><span class="title">Progress</span></th>
+                        <th ng-click="setSort('createdDate')">
+                            <span class="title">Order Date</span><div class="arrow" ng-show="sortField=='createdDate'" ng-class="{'arrow-down': sortReverse}"></div>
+                        </th>
+                        <th ng-click="setSort('executionDate')">
+                            <span class="title">Execution Date</span><div class="arrow" ng-show="sortField=='executionDate'" ng-class="{'arrow-down': sortReverse}"></div>
+                        </th>
+                        <th ng-click="setSort('updatedDate')">
+                            <span class="title">Last Updated</span><div class="arrow" ng-show="sortField=='updatedDate'" ng-class="{'arrow-down': sortReverse}"></div>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="o in visibleOrders()">
+                        <td><strong>{{o.orderNumber}}</strong></td>
+                        <td>
+                            <span class="label"
+                                  ng-class="{'label-info': o.orderType=='IMPORT',
+                                             'label-success': o.orderType=='EXPORT',
+                                             'label-warning': o.orderType=='MOUNT'}">
+                                {{o.orderType}}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="label"
+                                  ng-class="{'label-important': o.status=='CANCELLED',
+                                             'label-success': o.status=='COMPLETED',
+                                             'label-info': o.status=='IN_PROGRESS'}">
+                                {{o.status}}
+                            </span>
+                        </td>
+                        <td>
+                            <strong>{{o.processedFlexQty || 0}}</strong>
+                            <span class="muted" ng-show="o.flexQty"> / {{o.flexQty}}</span>
+                            <br>
+                            <small class="muted">
+                                {{o.orderType == 'IMPORT' ? 'imported' : 'attached'}}
+                            </small>
+                        </td>
+                        <td style="min-width: 90px;">
+                            <div class="progress" style="margin: 0;" ng-show="o.flexQty > 0">
+                                <div class="bar"
+                                     ng-class="{'bar-success': progress(o) >= 100}"
+                                     style="width: {{progress(o)}}%;"></div>
+                            </div>
+                            <span ng-show="o.flexQty > 0" class="muted">{{progress(o)}}%</span>
+                            <span ng-show="!o.flexQty" class="muted">&mdash;</span>
+                        </td>
+                        <td>{{o.createdDate | date:'yyyy-MM-dd'}}</td>
+                        <td>{{o.executionDate | date:'yyyy-MM-dd'}}</td>
+                        <td>{{o.updatedDate | date:'yyyy-MM-dd HH:mm'}}</td>
+                    </tr>
+                    <tr ng-show="!loading && visibleOrders().length === 0">
+                        <td colspan="8" class="muted" style="text-align:center; padding: 24px;">
+                            No flex orders found for the selected filters.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
 
             </div>
-
-            <div class="span6">
-                <ui-gmap-google-map center='map.center' zoom='map.zoom' options="map.options">
-                    <ui-gmap-marker coords="map.marker.coords" idkey="map.marker.id"
-                                    options="map.marker.options"></ui-gmap-marker>
-                </ui-gmap-google-map>
-            </div>
-
-
         </div>
     </div>
-</fieldset>
+</main>
+
+<style>
+    .filter-label { display: inline-block; margin: 0 4px 0 10px; font-weight: bold; }
+    .filter-label:first-child { margin-left: 0; }
+    .common-table th { cursor: pointer; white-space: nowrap; }
+    .hint { margin: 0 0 8px 2px; color: #888; }
+</style>
 
 <script type="text/javascript">
 
-    initMap(app);
+    /* NOTE: confirm this base path matches how FlexController is mounted in your
+       Jersey config. The existing page used '${contextPath}/tmw/order', so flex
+       endpoints are most likely under '${contextPath}/tmw/flex'. If your REST
+       base differs (e.g. '/webresources/flex'), change FLEX_API below only. */
+    var FLEX_API = '${contextPath}/tmw/flex';
 
-    app.controller("trackingOrderController", function ($scope, $filter, $http, NgTableParams) {
+    app.controller("flexOrderController", function ($scope, $filter, $http) {
 
-        $scope.searchtext = "";
+        $scope.orders = [];
+        $scope.loading = false;
+        $scope.errorMessage = "";
+
+        $scope.filter = { searchQuery: "", dateFrom: "", dateTo: "", orderType: "" };
+
+        $scope.sortField = "createdDate";
+        $scope.sortReverse = true;
 
         $scope.search = function () {
-            $scope.init($scope.searchtext);
-        };
-
-        $scope.init = function (searchFor) {
-            if (angular.isUndefined(searchFor)) {
-                searchFor = "";
-            }
-
             $scope.loading = true;
+            $scope.errorMessage = "";
 
-            /*
-            $http.get('${contextPath}/tmw/order/getAll?searchFor=' + searchFor)
-                    .then(function (res) {
-                        $scope.loading = false;
-                        $scope.orders = res.data.map(function (order) {
-                            order.expanded = isExpanded(order);
-                            return order;
-                        });
-                    });
-             */
+            var payload = {
+                searchQuery: $scope.filter.searchQuery || null,
+                dateFrom:    $scope.filter.dateFrom    || null,
+                dateTo:      $scope.filter.dateTo      || null
+            };
 
-            $scope.tableParams = new NgTableParams({count: ${pageSize}}, {getData: function($defer, params) {
-
-                var url = '${contextPath}/tmw/order/getAll?page=' + params.page() + '&searchFor=' + searchFor;
-                var sort = getSortParams(params.sorting());
-
-                if (sort) {
-                    url = url + "&sort=" + sort;
-                }
-
-                $http.get(url).then(function(response) {
-                    $scope.loading = false;
-
-                    $scope.orders = response.data.map(function (order) {
-                        order.expanded = isExpanded(order);
-                        return order;
-                    });
-
-                    var totalPages = response.headers("X-Total-Pages");
-                    var countPerPage = response.headers("X-Page-Size");
-
-                    params.total(totalPages * countPerPage);
-                    $scope.data = $scope.orders;
-                    $defer.resolve($scope.orders);
-                });
-            }});
-
-            function isExpanded(order) {
-                if (!searchFor || !order.orderDetails || order.orderDetails.length <= 0) {
-                    return false;
-                }
-
-                return order.orderDetails.some(function (details) {
-                    return search(details.containerNumber, searchFor)
-                            || search(details.driver.firstName, searchFor)
-                            || search(details.driver.lastName, searchFor)
-                            || search(details.driver.trailerNumber, searchFor)
-                            || search(details.driver.tractorNumber, searchFor)
-                });
-            }
-
-            function search(text, term) {
-                return text.indexOf(term) !== -1;
-            }
-        };
-
-        $scope.currentLocation = function (detailId) {
-
-            $scope.idSelectedDetail = detailId;
-
-            $http.get('${contextPath}/tmw/order/getCurrentLocation?detailId=' + detailId)
-                    .then(function (res) {
-                        var curLoc = res.data;
-                        if (!angular.isUndefined(curLoc.latitude)) {
-                            $scope.map = createMap(curLoc.latitude, curLoc.longitude);
-                        }
-                    });
-        };
-
-        $scope.init();
-
-        $scope.expandAll = function () {
-            $scope.allExpanded = !$scope.allExpanded;
-
-            $scope.orders.forEach(function (order) {
-                order.expanded = $scope.allExpanded;
+            $http.post(FLEX_API + "/getAllFlexOrders", payload).then(function (res) {
+                $scope.loading = false;
+                $scope.orders = res.data || [];
+            }, function () {
+                $scope.loading = false;
+                $scope.orders = [];
+                $scope.errorMessage = "Failed to load flex orders. Please try again.";
             });
         };
 
-        $scope.map = createMap(0, 0);
+        $scope.clearFilters = function () {
+            $scope.filter = { searchQuery: "", dateFrom: "", dateTo: "", orderType: "" };
+            $scope.search();
+        };
 
+        // client-side type filter + sorting on top of the server result
+        $scope.visibleOrders = function () {
+            var list = $scope.orders;
+            if ($scope.filter.orderType) {
+                list = list.filter(function (o) { return o.orderType === $scope.filter.orderType; });
+            }
+            return $filter('orderBy')(list, $scope.sortField, $scope.sortReverse);
+        };
+
+        $scope.setSort = function (field) {
+            if ($scope.sortField === field) {
+                $scope.sortReverse = !$scope.sortReverse;
+            } else {
+                $scope.sortField = field;
+                $scope.sortReverse = false;
+            }
+        };
+
+        $scope.progress = function (o) {
+            if (!o.flexQty || o.flexQty <= 0) return 0;
+            return Math.min(100, Math.round((o.processedFlexQty / o.flexQty) * 100));
+        };
+
+        // default window: last 30 days
+        var today = new Date();
+        var from = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+        $scope.filter.dateTo   = today.toISOString().slice(0, 10);
+        $scope.filter.dateFrom = from.toISOString().slice(0, 10);
+
+        $scope.search();
     });
 
 </script>
