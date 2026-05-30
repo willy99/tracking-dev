@@ -21,3 +21,4 @@ tmp/
 .DS_Store
 **/.DS_Store
 service/src/main/resources/firebase*.json
+/web/src/main/resources/firebase_artinlog.json

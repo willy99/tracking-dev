@@ -24,12 +24,39 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
+                <version>3.5.1</version>
                 <configuration>
                     <webResources>
+
                         <resource>
                             <directory>src/main/webapp</directory>
                             <filtering>true</filtering>
+                            <includes>
+                                <include>**/*.html</include>
+                                <include>**/*.ftl</include>
+                                <include>**/*.css</include>
+                                <include>**/*.js</include>
+                                <include>**/*.xml</include>
+                                <include>**/*.properties</include>
+                            </includes>
                         </resource>
+
+                        <resource>
+                            <directory>src/main/webapp</directory>
+                            <filtering>false</filtering>
+                            <excludes>
+                                <exclude>**/*.html</exclude>
+                                <exclude>**/*.ftl</exclude>
+                                <exclude>**/*.css</exclude>
+                                <exclude>**/*.js</exclude>
+                                <exclude>**/*.xml</exclude>
+                                <exclude>**/*.properties</exclude>
+                            </excludes>
+                            <includes>
+                                <include>**/*.json</include>
+                            </includes>
+                        </resource>
+
                     </webResources>
                 </configuration>
             </plugin>

@@ -189,7 +189,6 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.28</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
         	<groupId>com.google.zxing</groupId>
@@ -233,9 +232,15 @@
         <profile>
             <id>local</id>
             <properties>
-                <connection.url><![CDATA[jdbc:mysql://localhost:3306/trackingdev?useSSL=false&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10&amp;useUnicode=true&amp;characterEncoding=utf-8]]></connection.url>
-                <connection.user><![CDATA[root]]></connection.user>
+
+                <connection.url><![CDATA[jdbc:mysql://10.1.0.248:3306/trackingdev?useSSL=false&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10&amp;useUnicode=true&amp;characterEncoding=utf-8]]></connection.url>
+                <!--connection.url><![CDATA[jdbc:mysql://localhost:3306/trackingdev?useSSL=false&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10&amp;useUnicode=true&amp;characterEncoding=utf-8]]></connection.url-->
+                <connection.user><![CDATA[artinlog]]></connection.user>
                 <connection.password><![CDATA[Zkryk3hdl]]></connection.password>
+
+                <!--connection.url><![CDATA[jdbc:mysql://localhost:3306/trackingdev?useSSL=false&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10&amp;useUnicode=true&amp;characterEncoding=utf-8]]></connection.url>
+                <connection.user><![CDATA[root]]></connection.user>
+                <connection.password><![CDATA[Zkryk3hdl]]></connection.password-->
             </properties>
         </profile>
         <profile>
@@ -246,8 +251,8 @@
                 <connection.user><![CDATA[pzhelnov]]></connection.user>
                 <connection.password><![CDATA[Zkryk3hdl]]></connection.password-->
 
-                <!--connection.url><![CDATA[jdbc:mysql://10.1.0.248:3306/trackingdev?useSSL=false&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10&amp;useUnicode=true&amp;characterEncoding=utf-8]]></connection.url-->
-                <connection.url><![CDATA[jdbc:mysql://localhost:3306/trackingdev?useSSL=false&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10&amp;useUnicode=true&amp;characterEncoding=utf-8]]></connection.url>
+                <connection.url><![CDATA[jdbc:mysql://10.1.0.248:3306/trackingdev?useSSL=false&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10&amp;useUnicode=true&amp;characterEncoding=utf-8]]></connection.url>
+                <!--connection.url><![CDATA[jdbc:mysql://localhost:3306/trackingdev?useSSL=false&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10&amp;useUnicode=true&amp;characterEncoding=utf-8]]></connection.url-->
                 <connection.user><![CDATA[artinlog]]></connection.user>
                 <connection.password><![CDATA[Zkryk3hdl]]></connection.password>
 
