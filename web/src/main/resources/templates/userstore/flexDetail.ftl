@@ -12,7 +12,7 @@
 
                 <!-- ============ BACK + TITLE ============ -->
                 <div style="display:flex; align-items:baseline; gap:16px; margin-bottom:12px;">
-                    <a href="${contextPath}/tmw/flex/flexDetail/../orders" class="button button-gray">&larr; Back to Orders</a>
+                    <a href="${contextPath}/tmw/order/" class="button button-gray">&larr; Back to Orders</a>
                     <h1 style="margin:0;">
                         Flexes for order <strong>{{orderNum}}</strong>
                         <span class="label"
