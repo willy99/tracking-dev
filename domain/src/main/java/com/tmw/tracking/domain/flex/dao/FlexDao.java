@@ -1,7 +1,9 @@
 package com.tmw.tracking.domain.flex.dao;
 
 import com.tmw.tracking.domain.flex.entities.*;
+import com.tmw.tracking.domain.flex.to.FlexSearchRequestTO;
 import com.tmw.tracking.domain.flex.to.FlexTO;
+import com.tmw.tracking.domain.flex.to.PagedResultTO;
 
 import java.util.Date;
 import java.util.List;
@@ -58,5 +60,8 @@ public interface FlexDao {
 
     //Statistic
     List<FlexTO> getImportedFlexes(Date lastUpdated, String containerNum);
+
+    /** Returns a paged list of flexes belonging to a given order (any type). */
+    PagedResultTO<FlexTO> getFlexesByOrder(FlexSearchRequestTO request);
 
 }

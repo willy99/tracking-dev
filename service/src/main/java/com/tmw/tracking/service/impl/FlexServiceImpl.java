@@ -334,8 +334,15 @@ public class FlexServiceImpl implements FlexService {
     }
 
     @Override
-    public List<FlexOrderTO> getAllFlexOrdersWithStatistic(com.tmw.tracking.domain.flex.to.SearchFilterTO filter) {
+    public com.tmw.tracking.domain.flex.to.PagedResultTO<FlexOrderTO> getAllFlexOrdersWithStatistic(
+            com.tmw.tracking.domain.flex.to.SearchFilterTO filter) {
         return flexOrderDao.getAllOrdersWithStatistic(filter);
+    }
+
+    @Override
+    public com.tmw.tracking.domain.flex.to.PagedResultTO<FlexTO> getFlexesByOrder(
+            com.tmw.tracking.domain.flex.to.FlexSearchRequestTO request) {
+        return flexDao.getFlexesByOrder(request);
     }
 
 

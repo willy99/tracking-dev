@@ -7,8 +7,12 @@ import com.tmw.tracking.domain.flex.dao.FlexWarehouseDao;
 import com.tmw.tracking.domain.flex.entities.*;
 import com.tmw.tracking.domain.flex.to.FlexContainerTO;
 import com.tmw.tracking.domain.flex.to.FlexOrderTO;
+import com.tmw.tracking.domain.flex.to.FlexSearchRequestTO;
 import com.tmw.tracking.domain.flex.to.FlexTO;
 import com.tmw.tracking.domain.flex.to.FlexWarehouseTO;
+import com.tmw.tracking.domain.flex.to.PagedResultTO;
+import com.tmw.tracking.domain.flex.to.SearchFilterTO;
+import com.tmw.tracking.entity.paging.Page;
 import com.tmw.tracking.utils.DomainUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -427,5 +431,156 @@ public class FlexDaoImpl implements FlexDao {
         return flexTO;
     }
 
+    // -------------------------------------------------------------------------
+    // Flexes by order (used by the Flex Detail page)
+    // -------------------------------------------------------------------------
+
+    @Override
+    public PagedResultTO<FlexTO> getFlexesByOrder(FlexSearchRequestTO request) {
+        SearchFilterTO f   = request.getFilter() != null ? request.getFilter() : new SearchFilterTO();
+        String orderNum    = request.getOrderNum();
+        String orderType   = request.getOrderType();
+        String serial      = (f.getSearchQuery() != null && !f.getSearchQuery().isEmpty())
+                             ? "%" + f.getSearchQuery().toUpperCase() + "%" : null;
+        int    page        = f.getPage() > 0    ? f.getPage()     : 1;
+        int    pageSize    = f.getPageSize() > 0 ? f.getPageSize() : Page.ITEMS_ON_PAGE;
+
+        String serialClause = serial != null ? " AND UPPER(f.serialNumber) LIKE :serial " : "";
+
+        String dataHql, countHql;
+
+        if ("IMPORT".equalsIgnoreCase(orderType)) {
+            dataHql =
+                "SELECT f.id, f.serialNumber, w.id, w.name," +
+                "       f.importDate, f.exportDate, f.mountDate," +
+                "       c.id, c.containerNumber " +
+                "FROM Flex f " +
+                "LEFT JOIN f.warehouse w " +
+                "LEFT JOIN f.importContainer c " +
+                "WHERE f.deleted = false " +
+                "  AND c.importOrder.orderNumber = :orderNum " +
+                "  AND f.tenant = :tenant " +
+                serialClause +
+                "ORDER BY f.serialNumber";
+            countHql =
+                "SELECT COUNT(f) FROM Flex f " +
+                "LEFT JOIN f.importContainer c " +
+                "WHERE f.deleted = false " +
+                "  AND c.importOrder.orderNumber = :orderNum " +
+                "  AND f.tenant = :tenant " +
+                serialClause;
+        } else if ("MOUNT".equalsIgnoreCase(orderType)) {
+            dataHql =
+                "SELECT f.id, f.serialNumber, w.id, w.name," +
+                "       f.importDate, f.exportDate, f.mountDate," +
+                "       o.id, o.orderNumber, c.id, c.containerNumber " +
+                "FROM Flex f " +
+                "LEFT JOIN f.warehouse w " +
+                "LEFT JOIN f.exportOrder o " +
+                "LEFT JOIN f.mountContainer c " +
+                "WHERE f.deleted = false " +
+                "  AND f.exportOrder.orderNumber = :orderNum " +
+                "  AND f.mountContainer IS NOT NULL " +
+                "  AND f.tenant = :tenant " +
+                serialClause +
+                "ORDER BY f.serialNumber";
+            countHql =
+                "SELECT COUNT(f) FROM Flex f " +
+                "WHERE f.deleted = false " +
+                "  AND f.exportOrder.orderNumber = :orderNum " +
+                "  AND f.mountContainer IS NOT NULL " +
+                "  AND f.tenant = :tenant " +
+                serialClause;
+        } else { // EXPORT (default)
+            dataHql =
+                "SELECT f.id, f.serialNumber, w.id, w.name," +
+                "       f.importDate, f.exportDate, f.mountDate," +
+                "       o.id, o.orderNumber " +
+                "FROM Flex f " +
+                "LEFT JOIN f.warehouse w " +
+                "LEFT JOIN f.exportOrder o " +
+                "WHERE f.deleted = false " +
+                "  AND f.exportOrder.orderNumber = :orderNum " +
+                "  AND f.tenant = :tenant " +
+                serialClause +
+                "ORDER BY f.serialNumber";
+            countHql =
+                "SELECT COUNT(f) FROM Flex f " +
+                "WHERE f.deleted = false " +
+                "  AND f.exportOrder.orderNumber = :orderNum " +
+                "  AND f.tenant = :tenant " +
+                serialClause;
+        }
+
+        // count
+        Query countQuery = entityManager.createQuery(countHql);
+        countQuery.setParameter("tenant",   DomainUtils.getCurrentUser().getTenant());
+        countQuery.setParameter("orderNum", orderNum);
+        if (serial != null) countQuery.setParameter("serial", serial);
+        int totalItems = ((Long) countQuery.getSingleResult()).intValue();
+
+        // data
+        Query dataQuery = entityManager.createQuery(dataHql);
+        dataQuery.setParameter("tenant",   DomainUtils.getCurrentUser().getTenant());
+        dataQuery.setParameter("orderNum", orderNum);
+        if (serial != null) dataQuery.setParameter("serial", serial);
+        dataQuery.setFirstResult((page - 1) * pageSize);
+        dataQuery.setMaxResults(pageSize);
+
+        List<FlexTO> items = new ArrayList<>();
+        for (Object[] row : (List<Object[]>) dataQuery.getResultList()) {
+            items.add(buildFlexDetailTO(row, orderType));
+        }
+
+        return new PagedResultTO<>(items, totalItems, pageSize, page);
+    }
+
+    private FlexTO buildFlexDetailTO(Object[] row, String orderType) {
+        FlexTO dto = new FlexTO();
+        dto.setId((Long) row[0]);
+        dto.setSerialNumber((String) row[1]);
+        FlexWarehouseTO w = new FlexWarehouseTO();
+        w.setId((Long) row[2]);
+        w.setName((String) row[3]);
+        dto.setWarehouse(w);
+        dto.setImportDate((Date) row[4]);
+        dto.setExportDate((Date) row[5]);
+        dto.setMountDate((Date) row[6]);
+
+        if ("IMPORT".equalsIgnoreCase(orderType)) {
+            // row[7]=c.id, row[8]=c.containerNumber
+            if (row[7] != null) {
+                FlexContainerTO c = new FlexContainerTO();
+                c.setId((Long) row[7]);
+                c.setContainerNumber((String) row[8]);
+                dto.setImportContainer(c);
+                dto.setImportContainerNumber((String) row[8]);
+            }
+        } else if ("MOUNT".equalsIgnoreCase(orderType)) {
+            // row[7]=o.id, row[8]=o.orderNumber, row[9]=c.id, row[10]=c.containerNumber
+            if (row[7] != null) {
+                FlexOrderTO o = new FlexOrderTO();
+                o.setId((Long) row[7]);
+                o.setOrderNumber((String) row[8]);
+                dto.setExportOrder(o);
+            }
+            if (row[9] != null) {
+                FlexContainerTO c = new FlexContainerTO();
+                c.setId((Long) row[9]);
+                c.setContainerNumber((String) row[10]);
+                dto.setMountContainer(c);
+                dto.setMountContainerNumber((String) row[10]);
+            }
+        } else { // EXPORT
+            // row[7]=o.id, row[8]=o.orderNumber
+            if (row[7] != null) {
+                FlexOrderTO o = new FlexOrderTO();
+                o.setId((Long) row[7]);
+                o.setOrderNumber((String) row[8]);
+                dto.setExportOrder(o);
+            }
+        }
+        return dto;
+    }
 
 }

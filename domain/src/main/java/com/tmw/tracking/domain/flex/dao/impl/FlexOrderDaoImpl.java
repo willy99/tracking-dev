@@ -11,7 +11,9 @@ import com.tmw.tracking.domain.flex.entities.FlexStatusEnum;
 import com.tmw.tracking.domain.flex.entities.FlexWarehouse;
 import com.tmw.tracking.domain.flex.to.FlexOrderTO;
 import com.tmw.tracking.domain.flex.to.FlexTO;
+import com.tmw.tracking.domain.flex.to.PagedResultTO;
 import com.tmw.tracking.domain.flex.to.SearchFilterTO;
+import com.tmw.tracking.entity.paging.Page;
 import com.tmw.tracking.utils.DomainUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +24,6 @@ import javax.persistence.NoResultException;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import java.util.*;
-import java.util.Arrays;
 
 @Singleton
 public class FlexOrderDaoImpl implements FlexOrderDao {
@@ -32,8 +33,7 @@ public class FlexOrderDaoImpl implements FlexOrderDao {
     private FlexWarehouseDao flexWarehouseDao;
     private FlexDao flexDao;
 
-    private static final String ORDER_DATE_FIELD = "executionDate";
-
+    private static final String ORDER_DATE_FIELD = "lastUpdated";
 
     @Inject
     public FlexOrderDaoImpl(
@@ -75,11 +75,12 @@ public class FlexOrderDaoImpl implements FlexOrderDao {
                     existingOrder.getExportContainerQty().equals(0) ||
                     existingOrder.getExportFlexQty() == null ||
                     existingOrder.getExportFlexQty().equals(0) ||
+                    !existingOrder.getExportFlexQty().equals(newOrder.getExportFlexQty()) ||
                     !existingOrder.getExportContainerQty().equals(newOrder.getExportContainerQty()))) {
                 if (existingOrder.getExportContainerQty() == null || existingOrder.getExportContainerQty().equals(0)) {
                     existingOrder.setExportContainerQty(newOrder.getExportContainerQty());
                 }
-                if (existingOrder.getExportFlexQty() == null || existingOrder.getExportFlexQty().equals(0)) {
+                if (existingOrder.getExportFlexQty() == null || existingOrder.getExportFlexQty().equals(0) || !existingOrder.getExportFlexQty().equals(newOrder.getExportFlexQty())) {
                     existingOrder.setExportFlexQty(newOrder.getExportFlexQty());
                 }
                 ordersToRecalculate.put(existingOrder.getId(), existingOrder);
@@ -313,92 +314,135 @@ public class FlexOrderDaoImpl implements FlexOrderDao {
     /** web **/
 
     @Override
-    public List<FlexOrderTO> getAllOrdersWithStatistic(SearchFilterTO filter) {
-        String orderNum = (filter != null) ? filter.getSearchQuery() : null;
-        Date fromDate   = (filter != null) ? filter.getDateFrom()    : null;
-        Date toDate     = (filter != null) ? filter.getDateTo()      : null;
+    public PagedResultTO<FlexOrderTO> getAllOrdersWithStatistic(SearchFilterTO filter) {
+        String orderNum  = (filter != null) ? filter.getSearchQuery() : null;
+        Date   fromDate  = (filter != null) ? filter.getDateFrom()    : null;
+        Date   toDate    = (filter != null) ? filter.getDateTo()      : null;
+        String typeFilter= (filter != null) ? filter.getTypeFilter()  : null;
+        int    page      = (filter != null && filter.getPage() > 0) ? filter.getPage() : 1;
+        int    pageSize  = (filter != null && filter.getPageSize() > 0) ? filter.getPageSize() : Page.ITEMS_ON_PAGE;
+        String sortField = (filter != null && filter.getSortField() != null) ? filter.getSortField() : "createdDate";
+        boolean sortDesc = filter == null || !"asc".equalsIgnoreCase(filter.getSortDir());
 
         List<FlexOrderTO> result = new ArrayList<>();
 
-        String numClause  = (orderNum != null && !orderNum.isEmpty())
-                ? " and o.orderNumber = :orderNum " : "";
+        String numClause  = (orderNum != null && !orderNum.isEmpty()) ? " and o.orderNumber = :orderNum " : "";
         String fromClause = (fromDate != null) ? " and o." + ORDER_DATE_FIELD + " >= :fromDate " : "";
         String toClause   = (toDate   != null) ? " and o." + ORDER_DATE_FIELD + " <= :toDate "   : "";
 
-        String exportHql =
-            "SELECT o.orderNumber, o.exportFlexQty, o.orderType, o.status, " +
-            "       o.executionDate, o." + ORDER_DATE_FIELD + ", count(f) " +
-            "FROM FlexOrder o LEFT JOIN o.exportFlexes f " +
-            "WHERE (f IS NULL OR f.deleted = false) " +
-            "  AND o.orderType IN (:exportTypes) " +
-            "  AND o.status <> :cancelled " +
-            "  AND o.tenant = :tenant " +
-            numClause + fromClause + toClause +
-            "GROUP BY o.orderNumber, o.exportFlexQty, o.orderType, o.status, " +
-            "         o.executionDate, o." + ORDER_DATE_FIELD + " " +
-            "ORDER BY o." + ORDER_DATE_FIELD + " DESC";
+        // ---- EXPORT + MOUNT ----
+        boolean includeExportMount = typeFilter == null || typeFilter.isEmpty()
+                || "EXPORT".equals(typeFilter) || "MOUNT".equals(typeFilter);
+        if (includeExportMount) {
+            List<FlexOrderTypeEnum> exportTypes = new ArrayList<>();
+            if (typeFilter == null || typeFilter.isEmpty() || "EXPORT".equals(typeFilter)) exportTypes.add(FlexOrderTypeEnum.EXPORT);
+            if (typeFilter == null || typeFilter.isEmpty() || "MOUNT".equals(typeFilter))  exportTypes.add(FlexOrderTypeEnum.MOUNT);
 
-        Query exportQuery = entityManager.createQuery(exportHql);
-        exportQuery.setParameter("tenant",      DomainUtils.getCurrentUser().getTenant());
-        exportQuery.setParameter("cancelled",   FlexStatusEnum.CANCELLED);
-        exportQuery.setParameter("exportTypes", Arrays.asList(FlexOrderTypeEnum.EXPORT, FlexOrderTypeEnum.MOUNT));
-        applyFlexOrderFilterParams(exportQuery, orderNum, fromDate, toDate);
-        exportQuery.setMaxResults(500);
+            String exportHql =
+                "SELECT o.orderNumber, o.exportFlexQty, o.orderType, o.status, " +
+                "       o.executionDate, o." + ORDER_DATE_FIELD + ", count(f) " +
+                "FROM FlexOrder o LEFT JOIN o.exportFlexes f " +
+                "WHERE (f IS NULL OR f.deleted = false) " +
+                "  AND o.orderType IN (:exportTypes) " +
+                "  AND o.status <> :cancelled " +
+                "  AND o.tenant = :tenant " +
+                numClause + fromClause + toClause +
+                "GROUP BY o.orderNumber, o.exportFlexQty, o.orderType, o.status, " +
+                "         o.executionDate, o." + ORDER_DATE_FIELD;
 
-        for (Object[] row : (List<Object[]>) exportQuery.getResultList()) {
-            FlexOrderTO dto = new FlexOrderTO();
-            dto.setOrderNumber((String)          row[0]);
-            dto.setFlexQty((Integer)             row[1]);
-            dto.setOrderType((FlexOrderTypeEnum) row[2]);
-            dto.setStatus((FlexStatusEnum)       row[3]);
-            dto.setExecutionDate((Date)          row[4]);
-            dto.setCreatedDate((Date)            row[5]);
-            dto.setProcessedFlexQty(((Long)      row[6]).intValue());
-            dto.setUpdatedDate((Date)            row[5]);
-            result.add(dto);
-        }
+            Query exportQuery = entityManager.createQuery(exportHql);
+            exportQuery.setParameter("tenant",      DomainUtils.getCurrentUser().getTenant());
+            exportQuery.setParameter("cancelled",   FlexStatusEnum.CANCELLED);
+            exportQuery.setParameter("exportTypes", exportTypes);
+            applyFlexOrderFilterParams(exportQuery, orderNum, fromDate, toDate);
 
-        String importHql =
-            "FROM FlexOrder o " +
-            "WHERE o.orderType = :importType " +
-            "  AND o.status <> :cancelled " +
-            "  AND o.tenant = :tenant " +
-            numClause + fromClause + toClause +
-            "ORDER BY o." + ORDER_DATE_FIELD + " DESC";
-
-        TypedQuery<FlexOrder> importQuery = entityManager.createQuery(importHql, FlexOrder.class);
-        importQuery.setParameter("tenant",     DomainUtils.getCurrentUser().getTenant());
-        importQuery.setParameter("importType", FlexOrderTypeEnum.IMPORT);
-        importQuery.setParameter("cancelled",  FlexStatusEnum.CANCELLED);
-        applyFlexOrderFilterParams(importQuery, orderNum, fromDate, toDate);
-        importQuery.setMaxResults(500);
-
-        List<FlexOrder> importOrders = importQuery.getResultList();
-        if (!importOrders.isEmpty()) {
-            Map<String, Integer> expected  = fetchImportExpectedCounts(importOrders);
-            Map<String, Long>    processed = fetchImportProcessedCounts(importOrders);
-
-            for (FlexOrder o : importOrders) {
+            for (Object[] row : (List<Object[]>) exportQuery.getResultList()) {
                 FlexOrderTO dto = new FlexOrderTO();
-                dto.setOrderNumber(o.getOrderNumber());
-                dto.setOrderType(o.getOrderType());
-                dto.setStatus(o.getStatus());
-                dto.setExecutionDate(o.getExecutionDate());
-                dto.setCreatedDate(o.getExecutionDate());
-                dto.setUpdatedDate(o.getExecutionDate());
-                dto.setFlexQty(expected.getOrDefault(o.getOrderNumber(), 0));
-                dto.setProcessedFlexQty(processed.getOrDefault(o.getOrderNumber(), 0L).intValue());
+                dto.setOrderNumber((String)          row[0]);
+                dto.setFlexQty((Integer)             row[1]);
+                dto.setOrderType((FlexOrderTypeEnum) row[2]);
+                dto.setStatus((FlexStatusEnum)       row[3]);
+                dto.setExecutionDate((Date)          row[4]);
+                dto.setCreatedDate((Date)            row[5]);
+                dto.setProcessedFlexQty(((Long)      row[6]).intValue());
+                dto.setUpdatedDate((Date)            row[5]);
                 result.add(dto);
             }
         }
 
+        // ---- IMPORT ----
+        boolean includeImport = typeFilter == null || typeFilter.isEmpty() || "IMPORT".equals(typeFilter);
+        if (includeImport) {
+            String importHql =
+                "FROM FlexOrder o " +
+                "WHERE o.orderType = :importType " +
+                "  AND o.status <> :cancelled " +
+                "  AND o.tenant = :tenant " +
+                numClause + fromClause + toClause;
+
+            TypedQuery<FlexOrder> importQuery = entityManager.createQuery(importHql, FlexOrder.class);
+            importQuery.setParameter("tenant",     DomainUtils.getCurrentUser().getTenant());
+            importQuery.setParameter("importType", FlexOrderTypeEnum.IMPORT);
+            importQuery.setParameter("cancelled",  FlexStatusEnum.CANCELLED);
+            applyFlexOrderFilterParams(importQuery, orderNum, fromDate, toDate);
+
+            List<FlexOrder> importOrders = importQuery.getResultList();
+            if (!importOrders.isEmpty()) {
+                Map<String, Integer> expected  = fetchImportExpectedCounts(importOrders);
+                Map<String, Long>    processed = fetchImportProcessedCounts(importOrders);
+                for (FlexOrder o : importOrders) {
+                    FlexOrderTO dto = new FlexOrderTO();
+                    dto.setOrderNumber(o.getOrderNumber());
+                    dto.setOrderType(o.getOrderType());
+                    dto.setStatus(o.getStatus());
+                    dto.setExecutionDate(o.getExecutionDate());
+                    dto.setCreatedDate(o.getExecutionDate());
+                    dto.setUpdatedDate(o.getExecutionDate());
+                    dto.setFlexQty(expected.getOrDefault(o.getOrderNumber(), 0));
+                    dto.setProcessedFlexQty(processed.getOrDefault(o.getOrderNumber(), 0L).intValue());
+                    result.add(dto);
+                }
+            }
+        }
+
+        // ---- sort ----
         result.sort((a, b) -> {
-            Date da = a.getCreatedDate(), db = b.getCreatedDate();
-            if (da == null) return 1;
-            if (db == null) return -1;
-            return db.compareTo(da);
+            int cmp = compareField(a, b, sortField);
+            return sortDesc ? -cmp : cmp;
         });
-        return result;
+
+        // ---- page ----
+        int totalItems = result.size();
+        int fromIdx = (page - 1) * pageSize;
+        int toIdx   = Math.min(fromIdx + pageSize, totalItems);
+        List<FlexOrderTO> pageItems = (fromIdx < totalItems) ? result.subList(fromIdx, toIdx) : new ArrayList<>();
+
+        return new PagedResultTO<>(pageItems, totalItems, pageSize, page);
+    }
+
+    private int compareField(FlexOrderTO a, FlexOrderTO b, String field) {
+        if (field == null) field = "createdDate";
+        switch (field) {
+            case "orderNumber":      return nullSafeCompare(a.getOrderNumber(), b.getOrderNumber());
+            case "orderType":        return nullSafeCompare(a.getOrderType() != null ? a.getOrderType().name() : null,
+                                                            b.getOrderType() != null ? b.getOrderType().name() : null);
+            case "status":           return nullSafeCompare(a.getStatus() != null ? a.getStatus().name() : null,
+                                                            b.getStatus() != null ? b.getStatus().name() : null);
+            case "processedFlexQty": return Integer.compare(
+                                        a.getProcessedFlexQty() != null ? a.getProcessedFlexQty() : 0,
+                                        b.getProcessedFlexQty() != null ? b.getProcessedFlexQty() : 0);
+            case "executionDate":    return nullSafeCompare(a.getExecutionDate(), b.getExecutionDate());
+            case "updatedDate":      return nullSafeCompare(a.getUpdatedDate(), b.getUpdatedDate());
+            case "createdDate":
+            default:                 return nullSafeCompare(a.getCreatedDate(), b.getCreatedDate());
+        }
+    }
+
+    private <C extends Comparable<C>> int nullSafeCompare(C a, C b) {
+        if (a == null && b == null) return 0;
+        if (a == null) return -1;
+        if (b == null) return 1;
+        return a.compareTo(b);
     }
 
     private void applyFlexOrderFilterParams(Query q, String orderNum, Date fromDate, Date toDate) {

@@ -21,7 +21,6 @@ public class FlexContainer extends TenantSpecificEntity {
     @Field(index= Index.YES, analyze= Analyze.YES, store= Store.NO)
     private String containerNumber;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="flex_import_order", nullable=false, updatable = true)
     private FlexOrder importOrder;

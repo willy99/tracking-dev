@@ -8,6 +8,7 @@ import java.util.Date;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SearchFilterTO {
 
+    // ---- text / date filters ----
     private String searchQuery;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
@@ -16,27 +17,49 @@ public class SearchFilterTO {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private Date dateTo;
 
-    public String getSearchQuery() {
-        return searchQuery;
-    }
+    /** Optional entity-type filter (e.g. "IMPORT", "EXPORT", "MOUNT" for orders). */
+    private String typeFilter;
 
-    public void setSearchQuery(String searchQuery) {
-        this.searchQuery = searchQuery;
-    }
+    // ---- paging ----
+    /** 1-based page number. Defaults to 1. */
+    private int page = 1;
 
-    public Date getDateFrom() {
-        return dateFrom;
-    }
+    /**
+     * Items per page. 0 means "use the system default"
+     * (page.default.size property, falls back to 10).
+     */
+    private int pageSize = 0;
 
-    public void setDateFrom(Date dateFrom) {
-        this.dateFrom = dateFrom;
-    }
+    // ---- sorting ----
+    /** Field name to sort by (matches DTO field names). */
+    private String sortField;
 
-    public Date getDateTo() {
-        return dateTo;
-    }
+    /** "asc" or "desc". Defaults to "desc". */
+    private String sortDir = "desc";
 
-    public void setDateTo(Date dateTo) {
-        this.dateTo = dateTo;
-    }
+    // ---- getters / setters ----
+
+    public String getSearchQuery() { return searchQuery; }
+    public void setSearchQuery(String searchQuery) { this.searchQuery = searchQuery; }
+
+    public Date getDateFrom() { return dateFrom; }
+    public void setDateFrom(Date dateFrom) { this.dateFrom = dateFrom; }
+
+    public Date getDateTo() { return dateTo; }
+    public void setDateTo(Date dateTo) { this.dateTo = dateTo; }
+
+    public String getTypeFilter() { return typeFilter; }
+    public void setTypeFilter(String typeFilter) { this.typeFilter = typeFilter; }
+
+    public int getPage() { return page; }
+    public void setPage(int page) { this.page = page; }
+
+    public int getPageSize() { return pageSize; }
+    public void setPageSize(int pageSize) { this.pageSize = pageSize; }
+
+    public String getSortField() { return sortField; }
+    public void setSortField(String sortField) { this.sortField = sortField; }
+
+    public String getSortDir() { return sortDir; }
+    public void setSortDir(String sortDir) { this.sortDir = sortDir; }
 }

@@ -954,13 +954,49 @@ public class FlexController extends BaseController {
         }
     }
 
+    // web (Flex Detail page — renders the HTML shell)
+    @GET
+    @Produces(MediaType.TEXT_HTML + ";charset=utf-8")
+    @Path("/flexDetail")
+    @MethodCall(requiredPermission = PermissionType.LOGISTIC_READ)
+    public Viewable getFlexDetail(@QueryParam("token") final String token) {
+        User authenticatedUser = AuthenticationServiceImpl.getAuthenticatedUser();
+        final Map<String, Object> vars = new HashMap<>();
+        vars.put("angular", true);
+        vars.put("user", authenticatedUser);
+        vars.put("environment", environment);
+        return new Viewable("/userstore/flexDetail", vars);
+    }
+
+    // web (Flex Detail page — data endpoint)
+    @POST
+    @Path("/getFlexesByOrder")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @MethodCall(requiredPermission = PermissionType.LOGISTIC_READ)
+    public com.tmw.tracking.domain.flex.to.PagedResultTO<FlexTO> getFlexesByOrder(
+                                              com.tmw.tracking.domain.flex.to.FlexSearchRequestTO request,
+                                              @QueryParam("token") final String token,
+                                              @Context UriInfo uriInfo,
+                                              @Context HttpServletResponse response) {
+        if (request != null && request.getOrderNum() != null) {
+            request.setOrderNum(request.getOrderNum().toUpperCase());
+        }
+        if (request != null && request.getFilter() != null
+                && !StringUtils.isBlank(request.getFilter().getSearchQuery())) {
+            request.getFilter().setSearchQuery(request.getFilter().getSearchQuery().toUpperCase());
+        }
+        return flexService.getFlexesByOrder(request);
+    }
+
     // web (Flex Orders page)
     @POST
     @Path("/getAllFlexOrders")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @MethodCall(requiredPermission = PermissionType.LOGISTIC_READ)
-    public List<FlexOrderTO> getAllFlexOrders(SearchFilterTO filter,
+    public com.tmw.tracking.domain.flex.to.PagedResultTO<FlexOrderTO> getAllFlexOrders(
+                                              SearchFilterTO filter,
                                               @QueryParam("token") final String token,
                                               @Context UriInfo uriInfo,
                                               @Context HttpServletResponse response) {

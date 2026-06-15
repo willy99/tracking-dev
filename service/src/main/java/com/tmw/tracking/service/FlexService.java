@@ -125,6 +125,10 @@ public interface FlexService {
 
     List<FlexOrderTO> getMountedOrdersWithStatistic(String searchString);
 
-    List<FlexOrderTO> getAllFlexOrdersWithStatistic(com.tmw.tracking.domain.flex.to.SearchFilterTO filter);
+    com.tmw.tracking.domain.flex.to.PagedResultTO<FlexOrderTO> getAllFlexOrdersWithStatistic(
+            com.tmw.tracking.domain.flex.to.SearchFilterTO filter);
+
+    com.tmw.tracking.domain.flex.to.PagedResultTO<com.tmw.tracking.domain.flex.to.FlexTO> getFlexesByOrder(
+            com.tmw.tracking.domain.flex.to.FlexSearchRequestTO request);
 
 }
