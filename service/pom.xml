@@ -233,24 +233,19 @@
         <profile>
             <id>local</id>
             <properties>
-                <connection.url><![CDATA[jdbc:mysql://localhost:3306/trackingdev?useSSL=false&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10&amp;useUnicode=true&amp;characterEncoding=utf-8]]></connection.url>
-                <connection.user><![CDATA[root]]></connection.user>
-                <connection.password><![CDATA[Zkryk3hdl]]></connection.password>
+                <!-- Values come from the OS environment (see .env.example) — never hardcode credentials here. -->
+                <connection.url>${env.DB_URL}</connection.url>
+                <connection.user>${env.DB_USER}</connection.user>
+                <connection.password>${env.DB_PASSWORD}</connection.password>
             </properties>
         </profile>
         <profile>
             <id>dev</id>
             <properties>
-
-                <!--connection.url><![CDATA[jdbc:mysql://tracking-db-instance.cfeqoxcdnbrh.eu-central-1.rds.amazonaws.com:3306/trackingdev?autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10&amp;useUnicode=true&amp;characterEncoding=utf-8]]></connection.url>
-                <connection.user><![CDATA[pzhelnov]]></connection.user>
-                <connection.password><![CDATA[Zkryk3hdl]]></connection.password-->
-
-                <!--connection.url><![CDATA[jdbc:mysql://10.1.0.248:3306/trackingdev?useSSL=false&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10&amp;useUnicode=true&amp;characterEncoding=utf-8]]></connection.url-->
-                <connection.url><![CDATA[jdbc:mysql://localhost:3306/trackingdev?useSSL=false&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10&amp;useUnicode=true&amp;characterEncoding=utf-8]]></connection.url>
-                <connection.user><![CDATA[artinlog]]></connection.user>
-                <connection.password><![CDATA[Zkryk3hdl]]></connection.password>
-
+                <!-- Values come from the OS environment (see .env.example) — never hardcode credentials here. -->
+                <connection.url>${env.DB_URL}</connection.url>
+                <connection.user>${env.DB_USER}</connection.user>
+                <connection.password>${env.DB_PASSWORD}</connection.password>
             </properties>
             <activation>
                 <activeByDefault>true</activeByDefault>
@@ -259,9 +254,10 @@
         <profile>
             <id>prod</id>
             <properties>
-                <connection.url><![CDATA[jdbc:mysql://localhost:3306/trackingdev?useSSL=false&amp;autoReconnect=true&amp;failOverReadOnly=false&amp;maxReconnects=10&amp;useUnicode=true&amp;characterEncoding=utf-8]]></connection.url>
-                <connection.user><![CDATA[artinlog]]></connection.user>
-                <connection.password><![CDATA[Zkryk3hdl]]></connection.password>
+                <!-- Values come from the OS environment (see .env.example) — never hardcode credentials here. -->
+                <connection.url>${env.DB_URL}</connection.url>
+                <connection.user>${env.DB_USER}</connection.user>
+                <connection.password>${env.DB_PASSWORD}</connection.password>
             </properties>
         </profile>
 

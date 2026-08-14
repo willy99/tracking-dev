@@ -2,10 +2,35 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "taskmanager-frontend",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd /Users/pzhelnov/work/SpringWeb/frontend && npm run dev -- --port 5175"],
+      "port": 5175
+    },
+    {
       "name": "membrain-static",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8099", "--directory", "/Users/pzhelnov/work/CarDrivePython/public"],
       "port": 8099
+    },
+    {
+      "name": "ixtus",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd /Users/pzhelnov/work/ixtus && npx react-scripts start"],
+      "port": 3006,
+      "autoPort": true
+    },
+    {
+      "name": "cv-static",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8098", "--directory", "/Users/pzhelnov/work/SignalBot"],
+      "port": 8098
+    },
+    {
+      "name": "tictactoe-ui",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd /Users/pzhelnov/work/TicTacToeMQ/ui && npm run dev -- --port 5174"],
+      "port": 5174
     }
   ]
 }

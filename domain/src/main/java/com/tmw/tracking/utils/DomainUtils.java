@@ -91,6 +91,17 @@ public class DomainUtils {
 
 
 
+    // Property keys that must never ship with real values in a properties file committed to git.
+    // At runtime their value is taken from the matching environment variable (dots -> underscores,
+    // uppercased), so the properties file only needs to declare the key (see .env.example).
+    private static final String[] SECRET_PROPERTY_KEYS = {
+            "mail.user", "mail.password",
+            "tracking.server.login", "tracking.server.password",
+            "tracking.client.flex.1c.username", "tracking.client.flex.1c.password",
+            "hibernate.connection.host", "hibernate.connection.username", "hibernate.connection.password",
+            "auth.user.id", "auth.user.password"
+    };
+
     //TODO check if this really touched everytime!
     private static Properties getPropertiesHelper(String path) {
         final Properties applicationProperties = new Properties();
@@ -100,7 +111,17 @@ public class DomainUtils {
         } catch (IOException e) {
             logger.error(errorToString(e));
         }
+        overlaySecretsFromEnv(applicationProperties);
         return applicationProperties;
+    }
+
+    private static void overlaySecretsFromEnv(final Properties properties) {
+        for (String key : SECRET_PROPERTY_KEYS) {
+            String envValue = System.getenv(key.toUpperCase().replace('.', '_'));
+            if (envValue != null) {
+                properties.setProperty(key, envValue);
+            }
+        }
     }
 
 

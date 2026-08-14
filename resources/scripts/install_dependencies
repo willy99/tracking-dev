@@ -46,6 +46,11 @@ tar xzf $TOMCAT7_CORE_TAR_FILENAME
 # Copy over to the CATALINA_HOME
 cp -r /tmp/$TOMCAT7_CORE_UNPACKED_DIRNAME/* $CATALINA_HOME
 
+# Apply our version-controlled server.xml instead of the stock one shipped in the
+# tarball, so any hardening (RemoteIpValve, SSL connector, etc.) survives reinstalls
+# instead of living only as a manual edit on the box.
+cp "$(dirname "$0")/../tomcat/server.xml" $CATALINA_HOME/conf/server.xml
+
 # Install Java if not yet installed
 { which java; } || { yum install java; }
 
@@ -57,6 +62,14 @@ cat > /etc/init.d/tomcat7 <<'EOF'
 PATH=$JAVA_HOME/bin:$PATH
 export PATH
 CATALINA_HOME='/usr/share/tomcat7-codedeploy'
+
+# Secrets (mail/tracking-server/flex passwords) are never in git — they live in this
+# file on the instance itself and are read at runtime via System.getenv(). See .env.example.
+if [ -f /etc/tracking/.env ]; then
+    set -a
+    source /etc/tracking/.env
+    set +a
+fi
 
 case $1 in
 start)
@@ -102,8 +115,16 @@ cp -rf /opt/codedeploy-agent/deployment-root/$DEPLOYMENT_GROUP_ID/$DEPLOYMENT_ID
 
 export JAVA_HOME=/opt/jdk1.8.0_131
 
+# DB_URL/DB_USER/DB_PASSWORD (used by pom.xml's ${env.*} placeholders) come from this
+# file on the instance itself — never from git. See .env.example for the full list.
+if [ -f /etc/tracking/.env ]; then
+    set -a
+    source /etc/tracking/.env
+    set +a
+fi
+
 cd /tmp/codedeploy-deployment-staging-area/
-mvn clean install -P$TRACKING-ENV
+mvn clean install -P$TRACKING_ENV
 rm -rf /tmp/deployment-artifact/*
 cp -rf ./web/target/tracking-rest-app.war /tmp/deployment-artifact/
 

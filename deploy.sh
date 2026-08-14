@@ -4,6 +4,14 @@ echo "Here"
 
 set -e
 
+# DB/mail/tracking-server secrets come from this file on the instance itself — never
+# from git. See .env.example for the full list; the tomcat7 init script sources it
+# too, for the app's own runtime System.getenv() lookups.
+if [ -f /etc/tracking/.env ]; then
+    set -a
+    source /etc/tracking/.env
+    set +a
+fi
 
 mvn clean install
 

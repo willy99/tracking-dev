@@ -135,9 +135,6 @@ public class UtilsTest extends TestCase {
 
     @Test
     public void testPasswordGenerator() {
-        System.out.println(PasswordGenerator.encryptPassword("30krot99"));
+        System.out.println(PasswordGenerator.encryptPassword("34_NshsGsplshs"));
     }
-
-
-
 }

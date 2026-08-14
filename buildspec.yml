@@ -1,5 +1,15 @@
 version: 0.2
 
+# DB credentials are read from AWS Systems Manager Parameter Store at build time —
+# never hardcoded here or in pom.xml. Create these parameters per environment
+# (adjust the paths below to match your setup) and make sure the CodeBuild
+# service role has ssm:GetParameters on them. See .env.example for what each value means.
+env:
+  parameter-store:
+    DB_URL: /tracking-dev/db-url
+    DB_USER: /tracking-dev/db-user
+    DB_PASSWORD: /tracking-dev/db-password
+
 phases:
   install:
     runtime-versions:
@@ -19,4 +29,5 @@ artifacts:
   files:
     - web/target/tracking-rest-app.war
     - 'resources/scripts/*'
+    - 'resources/tomcat/*'
     - appspec.yml

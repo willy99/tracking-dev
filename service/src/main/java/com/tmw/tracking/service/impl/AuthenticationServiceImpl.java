@@ -33,17 +33,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserDao userDao;
     private final Integer tokenExpirationMinutes;
     private final MailSender mailSender;
+    private final LoginAttemptService loginAttemptService;
 
     @Inject
     public AuthenticationServiceImpl(final AuthenticatedUserDao authenticatedUserDao,
                                      final UserDao userDao,
                                      final MailSender mailSender,
+                                     final LoginAttemptService loginAttemptService,
                                      @Named("tmw.auth.token.expiration")final Integer tokenExpirationMinutes
                                      ) {
         this.authenticatedUserDao = authenticatedUserDao;
         this.userDao = userDao;
         this.tokenExpirationMinutes = tokenExpirationMinutes;
         this.mailSender = mailSender;
+        this.loginAttemptService = loginAttemptService;
     }
 
     @Override
@@ -59,16 +62,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         }
         MDC.put(Utils.MDC_USER, credentials);
+        loginAttemptService.checkNotLocked(credentials);
         user = userDao.getAnyUserByCredentials(credentials);
         if (user == null) {
+            loginAttemptService.recordFailure(credentials);
             throw new NotFoundException("User ["+credentials+"] not recognized. Please provide password.");
         }
         if(!user.isActive() || !user.getTenant().isActive()){
             throw new ServiceException("User ["+credentials+"] is not active, login denied", ErrorCode.AUTH_ERROR_ACCOUNT_DISABLED);
         }
         if (!user.getPassword().equals(PasswordGenerator.encryptPassword(password))) {
+            loginAttemptService.recordFailure(credentials);
             throw new ServiceException("The credentials are incorrect!", ErrorCode.AUTH_ERROR_USER_OR_PASSWORD_IS_INVALID);
         }
+        loginAttemptService.recordSuccess(credentials);
         return loginUser(user);
     }
 

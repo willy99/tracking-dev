@@ -53,8 +53,16 @@
         <url-pattern>/webresources/*</url-pattern>
     </filter-mapping>
 
+    <session-config>
+        <session-timeout>30</session-timeout>
+    </session-config>
+
     <!--
-     NOTE: uncomment for applying only https requests
+     NOTE: uncomment once TLS actually terminates somewhere in front of this app
+     (an ALB/CloudFront with an ACM cert, or a Tomcat SSL connector with a real
+     certificate). Right now server.xml has no working SSL connector and no
+     RemoteIpValve, so enabling this constraint would make Tomcat redirect to a
+     port nothing is listening on and take the app offline. See resources/tomcat/server.xml.
 -->
    <!--  <security-constraint>
       <web-resource-collection>
@@ -64,11 +72,7 @@
       <user-data-constraint>
          <transport-guarantee>CONFIDENTIAL</transport-guarantee>
       </user-data-constraint>
-    </security-constraint>
-
-    <session-config>
-        <session-timeout>30</session-timeout>
-    </session-config>-->
+    </security-constraint>-->
 
 
 
