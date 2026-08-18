@@ -4,16 +4,22 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.sun.jersey.api.view.Viewable;
 import com.tmw.tracking.domain.MonitoringType;
+import com.tmw.tracking.domain.PermissionType;
 import com.tmw.tracking.domain.TestResult;
 import com.tmw.tracking.service.MonitoringService;
 import com.tmw.tracking.utils.Utils;
+import com.tmw.tracking.web.aop.MethodCall;
+import com.tmw.tracking.web.hibernate.EntityManagerProvider;
 
 import javax.inject.Named;
+import javax.persistence.EntityManagerFactory;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
@@ -24,11 +30,27 @@ public class MonitoringController extends BaseController {
 
     private final String serverVersion;
     private final MonitoringService monitoringLogic;
+    private final EntityManagerProvider entityManagerProvider;
 
     @Inject
-    public MonitoringController(@Named("server.version") final String serverVersion, final MonitoringService monitoringLogic) {
+    public MonitoringController(@Named("server.version") final String serverVersion,
+                                final MonitoringService monitoringLogic,
+                                final EntityManagerProvider entityManagerProvider) {
         this.serverVersion = serverVersion;
         this.monitoringLogic = monitoringLogic;
+        this.entityManagerProvider = entityManagerProvider;
+    }
+
+    @POST
+    @Path("/evictCache")
+    @Produces(MediaType.APPLICATION_JSON)
+    @MethodCall(requiredPermission = PermissionType.COMPANY_MANAGEMENT)
+    public Response evictCache() {
+        EntityManagerFactory emf = entityManagerProvider.getEntityManager().getEntityManagerFactory();
+        if (emf != null && emf.isOpen()) {
+            emf.getCache().evictAll();
+        }
+        return Response.ok("{\"status\":\"ok\"}").build();
     }
 
 

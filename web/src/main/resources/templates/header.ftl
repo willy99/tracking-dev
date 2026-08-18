@@ -4,6 +4,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 
     <!-- ================================================================== -->
     <!-- Bootstrap -->
@@ -121,6 +124,58 @@
 
 
 <#assign help_button = false>
+    <style>
+        .sub-menu-divider { border-top: 1px solid #e8eaed; margin: 4px 0 !important; height: 0; padding: 0 !important; }
+        #sys-toast {
+            position: fixed; top: 18px; right: 24px; z-index: 9999;
+            min-width: 260px; max-width: 420px;
+            padding: 12px 18px; border-radius: 7px;
+            font-size: 13px; font-weight: 500;
+            box-shadow: 0 4px 14px rgba(0,0,0,.18);
+            display: flex; align-items: center; gap: 10px;
+            animation: sys-toast-in .22s ease;
+            transition: opacity .3s;
+        }
+        @keyframes sys-toast-in {
+            from { opacity: 0; transform: translateY(-10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        #sys-toast.success { background: #e6f9f0; border: 1px solid #6fcf97; color: #1a6640; }
+        #sys-toast.error   { background: #fff0f0; border: 1px solid #e57373; color: #8b1a1a; }
+        #sys-toast.loading { background: #edf4ff; border: 1px solid #90b8f8; color: #1a3a6e; }
+        #sys-toast-close { background:none; border:none; cursor:pointer; font-size:18px; opacity:.5; margin-left:auto; color:inherit; padding:0 2px; }
+        #sys-toast-close:hover { opacity:1; }
+    </style>
+    <script>
+        (function () {
+            var timer;
+            function showSysToast(msg, type) {
+                clearTimeout(timer);
+                var el = document.getElementById('sys-toast');
+                if (!el) {
+                    el = document.createElement('div');
+                    el.id = 'sys-toast';
+                    el.innerHTML = '<span id="sys-toast-icon"></span><span id="sys-toast-text"></span><button id="sys-toast-close" onclick="document.getElementById(\'sys-toast\').remove()">&times;</button>';
+                    document.body.appendChild(el);
+                }
+                el.className = type;
+                document.getElementById('sys-toast-text').textContent = msg;
+                document.getElementById('sys-toast-icon').innerHTML =
+                    type === 'success' ? '&#10003;' : type === 'error' ? '&#9888;' : '&#8987;';
+                timer = setTimeout(function () { if (el.parentNode) el.remove(); }, 5000);
+            }
+            window.invalidateHibernateCache = function (e) {
+                e.preventDefault();
+                showSysToast('Invalidating cache…', 'loading');
+                fetch('${contextPath}/tmw/monitoring/evictCache', { method: 'POST', credentials: 'same-origin' })
+                    .then(function (r) {
+                        if (r.ok) { showSysToast('Hibernate cache invalidated successfully.', 'success'); }
+                        else       { return r.text().then(function(t){ showSysToast('Error: ' + (t || r.status), 'error'); }); }
+                    })
+                    .catch(function (err) { showSysToast('Request failed: ' + err, 'error'); });
+            };
+        })();
+    </script>
 </head>
 <body>
 
@@ -182,17 +237,21 @@
                             <#if shiro.isPermitted("COMPANY_MANAGE_ROLES")>
                                 <li><a href="${contextPath}/tmw/userstore/roleManagement">Role management</a></li>
                             </#if>
+                            <li class="sub-menu-divider"></li>
+                            <li>
+                                <a href="#" onclick="invalidateHibernateCache(event)">
+                                    <i class="fa fa-trash-o"></i> Invalidate Cache
+                                </a>
+                            </li>
                         </ul>
                     </li>
                 </#if>
-                <li class="has-sub-menu user"><a href="#"><img src="${contextPath}/images/user-icon.png" alt="" class="icon">
-                    Hi, <span class="name">${shiro.principal.firstName}</span></a>
+                <li class="has-sub-menu user"><a href="#"><img src="${contextPath}/images/user-icon.png" alt="" class="icon"></a>
                     <ul class="sub-menu">
                         <li><a href="${contextPath}/tmw/userstore/profile">Edit Profile</a></li>
+                        <li><a href="${contextPath}/tmw/logout">Log Out</a></li>
                     </ul>
                 </li>
-
-                <li><a href="${contextPath}/tmw/logout">log out</a></li>
             <#else>
                 <li><a href="${contextPath}/tmw/calculator/containercalc">Container Calculator</a></li>
                 <li><a href="${contextPath}/tmw/tracking/trackContainer">Track Container</a></li>

@@ -345,6 +345,14 @@ public class FlexServiceImpl implements FlexService {
         return flexDao.getFlexesByOrder(request);
     }
 
+    @Override
+    public void recalculateOrder(String orderNum) {
+        FlexOrder order = flexOrderDao.getOrderByNumber(orderNum);
+        if (order == null) {
+            throw new com.tmw.tracking.web.service.exception.ValidationException("Order not found: " + orderNum);
+        }
+        flexOrderDao.recalculateOrderStatuses(Collections.singletonList(order));
+    }
 
     @Override
     public void importFlex(Flex flex) {

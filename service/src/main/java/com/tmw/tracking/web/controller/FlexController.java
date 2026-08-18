@@ -52,7 +52,7 @@ public class FlexController extends BaseController {
     }
 
 
-    //1c
+    //for1c
     @GET
     @Path("/getImportedOrders")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -65,7 +65,7 @@ public class FlexController extends BaseController {
         return flexService.getImportedOrders();
     }
 
-    //1c
+    //for1c
     @GET
     @Path("/getMountedOrders")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -78,7 +78,7 @@ public class FlexController extends BaseController {
         return flexService.getMountedOrders();
     }
 
-    //1c
+    //for1c
     @GET
     @Path("/getRenamedFlexList")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -609,6 +609,7 @@ public class FlexController extends BaseController {
     }
 
 
+    //for1c
     @GET
     @Path("/getWarehouses")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -621,6 +622,7 @@ public class FlexController extends BaseController {
     }
 
 
+    //for1c
     @GET
     @Path("/getFlexWarehouseMovement")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -1004,6 +1006,21 @@ public class FlexController extends BaseController {
             filter.setSearchQuery(filter.getSearchQuery().toUpperCase());
         }
         return flexService.getAllFlexOrdersWithStatistic(filter);
+    }
+
+    @POST
+    @Path("/recalculateOrder")
+    @Produces(MediaType.APPLICATION_JSON)
+    @MethodCall(requiredPermission = PermissionType.LOGISTIC_READ)
+    public javax.ws.rs.core.Response recalculateOrder(
+            @QueryParam("orderNum") final String orderNum,
+            @QueryParam("token") final String token,
+            @Context HttpServletResponse response) {
+        if (StringUtils.isBlank(orderNum)) {
+            return javax.ws.rs.core.Response.status(400).entity("orderNum is required").build();
+        }
+        flexService.recalculateOrder(orderNum.toUpperCase());
+        return javax.ws.rs.core.Response.ok().build();
     }
 
     public static class FlexBatchParams {

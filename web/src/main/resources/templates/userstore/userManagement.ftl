@@ -12,12 +12,15 @@
             <#if help_button><div class="aside-help-btn">help?</div></#if>
             <h1>Users</h1>
 
-            <div class="top-menu">
-                <div class="button button-green pop-up-opener" ng-click="createUser()">Create a New User</div>
-                <form class="search-form">
-                    <input name="search" ng-model="searchtext" placeholder="Search" type="search"><input ng-click="search()" type="submit" class="button button-gray" value="Go!">
-                </form>
-            </div>
+            <fieldset class="mgmt-filter-set">
+                <legend><i class="fa fa-search"></i> Search</legend>
+                <div class="button button-green pop-up-opener" ng-click="createUser()"><i class="fa fa-plus"></i> Create User</div>
+                <input name="search" ng-model="searchtext" placeholder="Search users…" type="search" ng-keyup="$event.keyCode == 13 && search()">
+                <input ng-click="search()" type="submit" class="button button-blue" value="Go">
+            </fieldset>
+
+            <div class="data-card">
+                <div class="data-card-header"><span><i class="fa fa-users"></i> Users</span></div>
             <table class="common-table" ng-table="tableParams">
                 <thead>
                 <tr>
@@ -42,6 +45,7 @@
                 </tr>
                 </tbody>
             </table>
+            </div><!-- /data-card -->
 
         </div>
     </div>

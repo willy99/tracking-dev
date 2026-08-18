@@ -131,4 +131,6 @@ public interface FlexService {
     com.tmw.tracking.domain.flex.to.PagedResultTO<com.tmw.tracking.domain.flex.to.FlexTO> getFlexesByOrder(
             com.tmw.tracking.domain.flex.to.FlexSearchRequestTO request);
 
+    void recalculateOrder(String orderNum);
+
 }

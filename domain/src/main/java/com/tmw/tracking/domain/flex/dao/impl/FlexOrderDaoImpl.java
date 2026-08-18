@@ -100,10 +100,27 @@ public class FlexOrderDaoImpl implements FlexOrderDao {
         if (ordersToRecalculate.isEmpty()) {
             return;
         }
-        //recalculate orders
+        doRecalculate(ordersToRecalculate, exportedFlexForOrders, mountedFlexForOrders);
+    }
 
+    @Transaction
+    @Override
+    public void recalculateOrderStatuses(List<FlexOrder> orders) {
+        Map<Long, FlexOrder> ordersMap = new HashMap<>();
+        Map<Long, Integer> exportedFlexForOrders = new HashMap<>();
+        Map<Long, Integer> mountedFlexForOrders = new HashMap<>();
+        for (FlexOrder order : orders) {
+            ordersMap.put(order.getId(), order);
+            exportedFlexForOrders.put(order.getId(), 0);
+            mountedFlexForOrders.put(order.getId(), 0);
+        }
+        doRecalculate(ordersMap, exportedFlexForOrders, mountedFlexForOrders);
+    }
+
+    private void doRecalculate(Map<Long, FlexOrder> ordersToRecalculate,
+                               Map<Long, Integer> exportedFlexForOrders,
+                               Map<Long, Integer> mountedFlexForOrders) {
         List<FlexTO> flexList = flexDao.getFlexesForOrders(new ArrayList<>(ordersToRecalculate.values()));
-        //count existing
         for (FlexTO flex: flexList) {
             if (flex.getExportOrder() != null && flex.getExportOrder().getId() != null) {
                 Integer count = exportedFlexForOrders.get(flex.getExportOrder().getId());
@@ -114,7 +131,6 @@ public class FlexOrderDaoImpl implements FlexOrderDao {
                 mountedFlexForOrders.put(flex.getExportOrder().getId(), count + 1);
             }
         }
-        //set corresponding statuses
         for (FlexOrder orderToRecalculate: ordersToRecalculate.values()) {
             Integer flexesAttachedToContainer = mountedFlexForOrders.get(orderToRecalculate.getId());
             Integer flexesAttachedToOrder = exportedFlexForOrders.get(orderToRecalculate.getId());
@@ -125,7 +141,6 @@ public class FlexOrderDaoImpl implements FlexOrderDao {
                 System.out.println("Expected count is NULL " + orderToRecalculate);
             }
 
-            //completed
             if (expectedFlexCount.equals(flexesAttachedToOrder)) {
                 orderToRecalculate.setOrderType(FlexOrderTypeEnum.MOUNT);
                 orderToRecalculate.setStatus(FlexStatusEnum.NEW);
@@ -135,7 +150,6 @@ public class FlexOrderDaoImpl implements FlexOrderDao {
                 orderToRecalculate.setStatus(FlexStatusEnum.COMPLETED);
             }
 
-            //in progress
             System.out.println("---- expectedCount " + expectedFlexCount);
             System.out.println("---- flexesAttachedToContainer " + flexesAttachedToContainer);
 
@@ -151,13 +165,12 @@ public class FlexOrderDaoImpl implements FlexOrderDao {
                 orderToRecalculate.setOrderType(FlexOrderTypeEnum.EXPORT);
                 orderToRecalculate.setStatus(FlexStatusEnum.NEW);
             }
-
             if (expectedFlexCount < flexesAttachedToContainer || expectedFlexCount < flexesAttachedToOrder) {
                 orderToRecalculate.setExportContainerQty(Math.max(flexesAttachedToContainer, flexesAttachedToOrder));
                 orderToRecalculate.setStatus(FlexStatusEnum.IN_PROGRESS);
             }
             System.out.println(">>> order " + orderToRecalculate.getOrderNumber() + " status" + orderToRecalculate.getStatus() + " type: " + orderToRecalculate.getOrderType());
-            //TODO entityManager.merge(orderToRecalculate);
+            entityManager.merge(orderToRecalculate);
         }
     }
 
@@ -326,7 +339,7 @@ public class FlexOrderDaoImpl implements FlexOrderDao {
 
         List<FlexOrderTO> result = new ArrayList<>();
 
-        String numClause  = (orderNum != null && !orderNum.isEmpty()) ? " and o.orderNumber = :orderNum " : "";
+        String numClause  = (orderNum != null && !orderNum.isEmpty()) ? " and upper(o.orderNumber) like :orderNum " : "";
         String fromClause = (fromDate != null) ? " and o." + ORDER_DATE_FIELD + " >= :fromDate " : "";
         String toClause   = (toDate   != null) ? " and o." + ORDER_DATE_FIELD + " <= :toDate "   : "";
 
@@ -446,7 +459,7 @@ public class FlexOrderDaoImpl implements FlexOrderDao {
     }
 
     private void applyFlexOrderFilterParams(Query q, String orderNum, Date fromDate, Date toDate) {
-        if (orderNum != null && !orderNum.isEmpty()) q.setParameter("orderNum", orderNum.toUpperCase());
+        if (orderNum != null && !orderNum.isEmpty()) q.setParameter("orderNum", "%" + orderNum.toUpperCase() + "%");
         if (fromDate != null) q.setParameter("fromDate", fromDate);
         if (toDate   != null) q.setParameter("toDate",   toDate);
     }

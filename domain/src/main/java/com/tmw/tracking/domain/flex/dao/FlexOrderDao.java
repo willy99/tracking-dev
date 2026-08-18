@@ -35,4 +35,6 @@ public interface FlexOrderDao {
 
     PagedResultTO<FlexOrderTO> getAllOrdersWithStatistic(SearchFilterTO filter);
 
+    void recalculateOrderStatuses(List<FlexOrder> orders);
+
 }
