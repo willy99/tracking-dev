@@ -1,6 +1,7 @@
 package com.tmw.tracking.domain.flex.dao;
 
 import com.tmw.tracking.domain.flex.entities.*;
+import com.tmw.tracking.domain.flex.to.FlexSearchFilterTO;
 import com.tmw.tracking.domain.flex.to.FlexSearchRequestTO;
 import com.tmw.tracking.domain.flex.to.FlexTO;
 import com.tmw.tracking.domain.flex.to.PagedResultTO;
@@ -63,5 +64,8 @@ public interface FlexDao {
 
     /** Returns a paged list of flexes belonging to a given order (any type). */
     PagedResultTO<FlexTO> getFlexesByOrder(FlexSearchRequestTO request);
+
+    /** General search: all non-deleted flexes matching the given filter. */
+    List<FlexTO> searchFlexes(FlexSearchFilterTO filter);
 
 }

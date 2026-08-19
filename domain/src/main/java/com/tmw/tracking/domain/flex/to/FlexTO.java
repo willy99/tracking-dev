@@ -18,6 +18,7 @@ public class FlexTO {
     private FlexContainerTO mountContainer;
     private String mountContainerNumber;
     private String importContainerNumber;
+    private String exportOrderNum;
     private FlexWarehouseTO warehouse;
     private Date importDate;
     private Date exportDate;
@@ -129,6 +130,14 @@ public class FlexTO {
 
     public void setImportContainerNumber(String importContainerNumber) {
         this.importContainerNumber = importContainerNumber;
+    }
+
+    public String getExportOrderNum() {
+        return exportOrderNum;
+    }
+
+    public void setExportOrderNum(String exportOrderNum) {
+        this.exportOrderNum = exportOrderNum;
     }
 
     @Override

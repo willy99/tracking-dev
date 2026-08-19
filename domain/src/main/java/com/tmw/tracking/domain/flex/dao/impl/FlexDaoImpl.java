@@ -7,6 +7,7 @@ import com.tmw.tracking.domain.flex.dao.FlexWarehouseDao;
 import com.tmw.tracking.domain.flex.entities.*;
 import com.tmw.tracking.domain.flex.to.FlexContainerTO;
 import com.tmw.tracking.domain.flex.to.FlexOrderTO;
+import com.tmw.tracking.domain.flex.to.FlexSearchFilterTO;
 import com.tmw.tracking.domain.flex.to.FlexSearchRequestTO;
 import com.tmw.tracking.domain.flex.to.FlexTO;
 import com.tmw.tracking.domain.flex.to.FlexWarehouseTO;
@@ -581,6 +582,89 @@ public class FlexDaoImpl implements FlexDao {
             }
         }
         return dto;
+    }
+
+    @Override
+    public List<FlexTO> searchFlexes(FlexSearchFilterTO filter) {
+        String serialNum          = (filter != null) ? filter.getSerialNum()          : null;
+        String containerNum       = (filter != null) ? filter.getContainerNum()       : null;
+        String exportOrderNum     = (filter != null) ? filter.getExportOrderNum()     : null;
+        String warehouseName      = (filter != null) ? filter.getWarehouseName()      : null;
+        Boolean hasExportOrder    = (filter != null) ? filter.getHasExportOrder()     : null;
+        Boolean hasMountContainer = (filter != null) ? filter.getHasMountContainer()  : null;
+
+        StringBuilder hql = new StringBuilder(
+            "SELECT f.id, f.serialNumber, " +
+            "       w.id, w.name, w.warehouseType, " +
+            "       eo.orderNumber, " +
+            "       ic.containerNumber, " +
+            "       mc.containerNumber, " +
+            "       f.importDate " +
+            "FROM Flex f " +
+            "LEFT JOIN f.warehouse w " +
+            "LEFT JOIN f.exportOrder eo " +
+            "LEFT JOIN f.importContainer ic " +
+            "LEFT JOIN f.mountContainer mc " +
+            "WHERE f.deleted = false AND f.tenant = :tenant"
+        );
+        if (serialNum != null && !serialNum.isEmpty()) {
+            hql.append(" AND upper(f.serialNumber) like :serialNum");
+        }
+        // ic/mc use IS NOT NULL guards so NULL left-join rows don't short-circuit the OR
+        if (containerNum != null && !containerNum.isEmpty()) {
+            hql.append(" AND ((ic IS NOT NULL AND upper(ic.containerNumber) like :containerNum)" +
+                       " OR  (mc IS NOT NULL AND upper(mc.containerNumber) like :containerNum))");
+        }
+        if (exportOrderNum != null && !exportOrderNum.isEmpty()) {
+            hql.append(" AND eo IS NOT NULL AND upper(eo.orderNumber) like :exportOrderNum");
+        }
+        if (warehouseName != null && !warehouseName.isEmpty()) {
+            hql.append(" AND w.name = :warehouseName");
+        }
+        if (Boolean.TRUE.equals(hasExportOrder)) {
+            hql.append(" AND eo IS NOT NULL");
+        }
+        if (Boolean.TRUE.equals(hasMountContainer)) {
+            hql.append(" AND mc IS NOT NULL");
+        }
+        hql.append(" ORDER BY f.importDate DESC");
+
+        Query query = entityManager.createQuery(hql.toString());
+        query.setParameter("tenant", DomainUtils.getCurrentUser().getTenant());
+        if (serialNum != null && !serialNum.isEmpty()) {
+            query.setParameter("serialNum", "%" + serialNum.toUpperCase() + "%");
+        }
+        if (containerNum != null && !containerNum.isEmpty()) {
+            query.setParameter("containerNum", "%" + containerNum.toUpperCase() + "%");
+        }
+        if (exportOrderNum != null && !exportOrderNum.isEmpty()) {
+            query.setParameter("exportOrderNum", "%" + exportOrderNum.toUpperCase() + "%");
+        }
+        if (warehouseName != null && !warehouseName.isEmpty()) {
+            query.setParameter("warehouseName", warehouseName);
+        }
+
+        List<Object[]> rows = query.getResultList();
+        List<FlexTO> result = new ArrayList<>();
+        for (Object[] row : rows) {
+            FlexTO dto = new FlexTO();
+            dto.setId((Long) row[0]);
+            dto.setSerialNumber((String) row[1]);
+
+            if (row[2] != null) {
+                FlexWarehouseTO wto = new FlexWarehouseTO();
+                wto.setId((Long) row[2]);
+                wto.setName((String) row[3]);
+                wto.setWarehouseType((FlexWarehouseTypeEnum) row[4]);
+                dto.setWarehouse(wto);
+            }
+            dto.setExportOrderNum((String) row[5]);
+            dto.setImportContainerNumber((String) row[6]);
+            dto.setMountContainerNumber((String) row[7]);
+            dto.setImportDate((java.util.Date) row[8]);
+            result.add(dto);
+        }
+        return result;
     }
 
 }

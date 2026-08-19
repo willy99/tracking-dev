@@ -1,6 +1,7 @@
 package com.tmw.tracking.domain.flex.to;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.tmw.tracking.domain.flex.entities.FlexWarehouseTypeEnum;
 
 import java.util.Objects;
 
@@ -8,6 +9,7 @@ import java.util.Objects;
 public class FlexWarehouseTO {
     private String name;
     private Long id;
+    private FlexWarehouseTypeEnum warehouseType;
 
     public String getName() {
         return name;
@@ -23,6 +25,14 @@ public class FlexWarehouseTO {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public FlexWarehouseTypeEnum getWarehouseType() {
+        return warehouseType;
+    }
+
+    public void setWarehouseType(FlexWarehouseTypeEnum warehouseType) {
+        this.warehouseType = warehouseType;
     }
 
     @Override

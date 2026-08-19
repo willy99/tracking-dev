@@ -956,6 +956,35 @@ public class FlexController extends BaseController {
         }
     }
 
+    // web (Flex Management page — renders the HTML shell)
+    @GET
+    @Produces(MediaType.TEXT_HTML + ";charset=utf-8")
+    @Path("/flexManagement")
+    @MethodCall(requiredPermission = PermissionType.LOGISTIC_READ)
+    public Viewable getFlexManagementPage() {
+        final Map<String, Object> vars = new HashMap<>();
+        vars.put("angular", true);
+        vars.put("environment", environment);
+        vars.put("pageSize", com.tmw.tracking.entity.paging.Page.ITEMS_ON_PAGE);
+        return new Viewable("/flex/flexManagement", vars);
+    }
+
+    // web (Flex Management page — data endpoint)
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/searchFlexes")
+    @MethodCall(requiredPermission = PermissionType.LOGISTIC_READ)
+    public List<FlexTO> searchFlexes(com.tmw.tracking.domain.flex.to.FlexSearchFilterTO filter) {
+        if (filter != null) {
+            if (!StringUtils.isBlank(filter.getSerialNum()))
+                filter.setSerialNum(filter.getSerialNum().trim());
+            if (!StringUtils.isBlank(filter.getContainerNum()))
+                filter.setContainerNum(filter.getContainerNum().trim());
+        }
+        return flexService.searchFlexes(filter);
+    }
+
     // web (Flex Detail page — renders the HTML shell)
     @GET
     @Produces(MediaType.TEXT_HTML + ";charset=utf-8")

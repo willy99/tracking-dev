@@ -133,4 +133,6 @@ public interface FlexService {
 
     void recalculateOrder(String orderNum);
 
+    List<FlexTO> searchFlexes(com.tmw.tracking.domain.flex.to.FlexSearchFilterTO filter);
+
 }

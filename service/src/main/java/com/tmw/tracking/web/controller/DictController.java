@@ -7,6 +7,8 @@ import com.tmw.tracking.dao.ContainerTypeDao;
 import com.tmw.tracking.dao.DriverDao;
 import com.tmw.tracking.dao.TrackingLineDao;
 import com.tmw.tracking.domain.PermissionType;
+import com.tmw.tracking.domain.flex.dao.FlexWarehouseDao;
+import com.tmw.tracking.domain.flex.entities.FlexWarehouse;
 import com.tmw.tracking.entity.ContainerType;
 import com.tmw.tracking.entity.Driver;
 import com.tmw.tracking.entity.TrackingLine;
@@ -32,16 +34,19 @@ public class DictController extends BaseController {
     private final ContainerTypeDao containerTypeDao;
     private final DriverDao driverDao;
     private final TrackingLineDao trackingLineDao;
+    private final FlexWarehouseDao flexWarehouseDao;
     private final static Logger logger = LoggerFactory.getLogger(DictController.class);
 
     @Inject
     public DictController(
             final ContainerTypeDao containerTypeDao,
             final DriverDao driverDao,
-            final TrackingLineDao trackingLineDao) {
+            final TrackingLineDao trackingLineDao,
+            final FlexWarehouseDao flexWarehouseDao) {
         this.containerTypeDao = containerTypeDao;
         this.driverDao = driverDao;
         this.trackingLineDao = trackingLineDao;
+        this.flexWarehouseDao = flexWarehouseDao;
     }
 
     @GET
@@ -200,6 +205,27 @@ public class DictController extends BaseController {
 
         setPageHeaders(page, response);
         return page.getContent();
+    }
+
+    @GET
+    @Produces(MediaType.TEXT_HTML)
+    @Path("/warehouses")
+    @MethodCall(requiredPermission = PermissionType.LOGISTIC_READ)
+    public Viewable getWarehousesPage() {
+        final Map<String, Object> vars = new HashMap<String, Object>();
+        vars.put("angular", true);
+        vars.put("environment", environment);
+        vars.put("pageSize", Page.ITEMS_ON_PAGE);
+        return new Viewable("/dict/warehouses", vars);
+    }
+
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/getAllWarehouses")
+    @MethodCall(requiredPermission = PermissionType.LOGISTIC_READ)
+    public List<FlexWarehouse> getAllWarehouses() {
+        return flexWarehouseDao.getAllWarehouses();
     }
 
 }

@@ -204,19 +204,28 @@
                             <#if shiro.isPermitted("DICT_CONT_TYPES_UPDATE")><li><a href="${contextPath}/tmw/dict/containerTypes">Container Types</a></li></#if>
                             <#if shiro.isPermitted("DICT_DRIVERS_UPDATE")><li><a href="${contextPath}/tmw/dict/drivers">Drivers</a></li></#if>
                             <#if shiro.isPermitted("DICT_CONT_LINES_SHOW")><li><a href="${contextPath}/tmw/dict/lines">Tracking Lines</a></li></#if>
-                            <#if shiro.isPermitted("DICT_STATION_CODE_UPDATE")><li><a href="${contextPath}/tmw/dict/lines">Station Codes</a></li></#if>
-                            <#if shiro.isPermitted("DICT_GOODS_UPDATE")><li><a href="${contextPath}/tmw/dict/lines">Goods Codes</a></li></#if>
+                            <#if shiro.isPermitted("LOGISTIC_READ")><li <#if top_nav_selected == 'warehouseManagement'>class="current-page"</#if>><a href="${contextPath}/tmw/dict/warehouses">Warehouses</a></li></#if>
                         </ul>
 
                     </#if>
                 </li>
+
+                <li class="has-sub-menu">
+                    <a data-toggle="dropdown" class="dropdown-toggle">Workflow</a>
+                    <#if shiro.isPermitted("ORDER_SHOW")>
+                        <ul class="sub-menu">
+                            <li <#if top_nav_selected == 'trackingOrdersManagement'>class="current-page"</#if>><a href="${contextPath}/tmw/order/">Order</a></li>
+                            <li <#if top_nav_selected == 'flexManagement'>class="current-page"</#if>><a href="${contextPath}/tmw/flex/flexManagement">Flex Management</a></li>
+                        </ul>
+
+                    </#if>
+                </li>
+
                 <li class="has-sub-menu">
                     <a data-toggle="dropdown" class="dropdown-toggle">Service</a>
                     <ul class="sub-menu">
                         <li><a href="${contextPath}/tmw/calculator/containercalc">Container Calculator</a></li>
-                        <#if shiro.isPermitted("ORDER_SHOW")>
-                            <li <#if top_nav_selected == 'trackingOrdersManagement'>class="current-page"</#if>><a href="${contextPath}/tmw/order/">Order</a></li>
-                        </#if>
+                        <li class="sub-menu-divider"></li>
                         <#if shiro.isPermitted("LOGISTIC")>
                             <li <#if top_nav_selected == 'trackingOrdersManagement'>class="current-page"</#if>><a href="${contextPath}/tmw/flex/batchImportFlex/">Batch Import Flex</a></li>
                             <li <#if top_nav_selected == 'trackingOrdersManagement'>class="current-page"</#if>><a href="${contextPath}/tmw/flex/batchExportFlex/">Batch Export Flex</a></li>

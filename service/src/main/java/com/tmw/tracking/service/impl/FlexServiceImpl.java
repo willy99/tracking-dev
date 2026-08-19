@@ -355,6 +355,11 @@ public class FlexServiceImpl implements FlexService {
     }
 
     @Override
+    public List<com.tmw.tracking.domain.flex.to.FlexTO> searchFlexes(com.tmw.tracking.domain.flex.to.FlexSearchFilterTO filter) {
+        return flexDao.searchFlexes(filter);
+    }
+
+    @Override
     public void importFlex(Flex flex) {
         //validate status
         Flex existingFlex = flexDao.getBySerialNumber(flex.getSerialNumber());
