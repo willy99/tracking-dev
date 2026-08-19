@@ -4,6 +4,16 @@ echo "Here"
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "$SCRIPT_DIR/.env" ]]; then
+    echo "Loading DB credentials from $SCRIPT_DIR/.env"
+    set -a
+    source "$SCRIPT_DIR/.env"
+    set +a
+else
+    echo "ERROR: $SCRIPT_DIR/.env not found. Create it with TRACKING_*_DB_URL/USER/PASSWORD before deploying." >&2
+    exit 1
+fi
 
 mvn clean install
 

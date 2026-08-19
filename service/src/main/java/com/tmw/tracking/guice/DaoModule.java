@@ -5,6 +5,8 @@ import com.google.inject.matcher.Matchers;
 import com.tmw.tracking.Transaction;
 import com.tmw.tracking.dao.*;
 import com.tmw.tracking.dao.impl.*;
+import com.tmw.tracking.domain.events.dao.EventLogDao;
+import com.tmw.tracking.domain.events.dao.impl.EventLogDaoImpl;
 import com.tmw.tracking.domain.flex.dao.*;
 import com.tmw.tracking.domain.flex.dao.impl.*;
 import com.tmw.tracking.service.PermissionService;
@@ -52,5 +54,7 @@ public class DaoModule extends AbstractModule {
         bind(FlexWarehouseDao.class).to(FlexWarehouseDaoImpl.class);
         bind(FlexOrderDao.class).to(FlexOrderDaoImpl.class);
         bind(FlexHistoryDao.class).to(FlexHistoryDaoImpl.class);
+
+        bind(EventLogDao.class).to(EventLogDaoImpl.class);
     }
 }

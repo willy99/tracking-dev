@@ -103,6 +103,20 @@ cp -rf /opt/codedeploy-agent/deployment-root/$DEPLOYMENT_GROUP_ID/$DEPLOYMENT_ID
 export JAVA_HOME=/opt/jdk1.8.0_131
 
 cd /tmp/codedeploy-deployment-staging-area/
+
+# .env lives outside the ephemeral CodeDeploy staging area (wiped on every deploy),
+# at a fixed path on this box — provision it once, it survives across deploys.
+PERSISTENT_ENV_FILE='/home/work/tracking/.env'
+if [[ -f "$PERSISTENT_ENV_FILE" ]]; then
+    echo "Loading DB credentials from $PERSISTENT_ENV_FILE"
+    set -a
+    source "$PERSISTENT_ENV_FILE"
+    set +a
+else
+    echo "ERROR: $PERSISTENT_ENV_FILE not found. Create it with TRACKING_*_DB_URL/USER/PASSWORD before deploying." >&2
+    exit 1
+fi
+
 mvn clean install -P$TRACKING-ENV
 rm -rf /tmp/deployment-artifact/*
 cp -rf ./web/target/tracking-rest-app.war /tmp/deployment-artifact/

@@ -4,6 +4,8 @@ import com.google.inject.Singleton;
 import com.tmw.tracking.Transaction;
 import com.tmw.tracking.dao.AuthenticatedUserDao;
 import com.tmw.tracking.dao.UserDao;
+import com.tmw.tracking.domain.events.dao.EventLogDao;
+import com.tmw.tracking.domain.events.entities.EventLog;
 import com.tmw.tracking.entity.AuthenticatedUser;
 import com.tmw.tracking.entity.Company;
 import com.tmw.tracking.entity.User;
@@ -20,6 +22,8 @@ import org.apache.commons.lang.time.DateUtils;
 import org.apache.log4j.MDC;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -29,21 +33,26 @@ import java.util.UUID;
 @Singleton
 public class AuthenticationServiceImpl implements AuthenticationService {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthenticationServiceImpl.class);
+
     private final AuthenticatedUserDao authenticatedUserDao;
     private final UserDao userDao;
     private final Integer tokenExpirationMinutes;
     private final MailSender mailSender;
+    private final EventLogDao eventLogDao;
 
     @Inject
     public AuthenticationServiceImpl(final AuthenticatedUserDao authenticatedUserDao,
                                      final UserDao userDao,
                                      final MailSender mailSender,
+                                     final EventLogDao eventLogDao,
                                      @Named("tmw.auth.token.expiration")final Integer tokenExpirationMinutes
                                      ) {
         this.authenticatedUserDao = authenticatedUserDao;
         this.userDao = userDao;
         this.tokenExpirationMinutes = tokenExpirationMinutes;
         this.mailSender = mailSender;
+        this.eventLogDao = eventLogDao;
     }
 
     @Override
@@ -61,15 +70,50 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         MDC.put(Utils.MDC_USER, credentials);
         user = userDao.getAnyUserByCredentials(credentials);
         if (user == null) {
+            // no user resolved -> no tenant to attribute the event to, can't log
             throw new NotFoundException("User ["+credentials+"] not recognized. Please provide password.");
         }
         if(!user.isActive() || !user.getTenant().isActive()){
+            logLoginEvent(user, false, "Account disabled");
             throw new ServiceException("User ["+credentials+"] is not active, login denied", ErrorCode.AUTH_ERROR_ACCOUNT_DISABLED);
         }
         if (!user.getPassword().equals(PasswordGenerator.encryptPassword(password))) {
+            logLoginEvent(user, false, "Invalid credentials");
             throw new ServiceException("The credentials are incorrect!", ErrorCode.AUTH_ERROR_USER_OR_PASSWORD_IS_INVALID);
         }
-        return loginUser(user);
+        final AuthenticatedUser authenticatedUser = loginUser(user);
+        logLoginEvent(user, true, null);
+        return authenticatedUser;
+    }
+
+    /**
+     * Best-effort login/logout audit entry. Never lets a logging failure affect the actual
+     * auth flow — failures are only logged, never thrown.
+     */
+    private void logLoginEvent(final User user, final boolean success, final String reason) {
+        logAuthEvent(user, "Login", success, reason);
+    }
+
+    private void logLogoutEvent(final User user) {
+        logAuthEvent(user, "Logout", true, null);
+    }
+
+    private void logAuthEvent(final User user, final String action, final boolean success, final String reason) {
+        try {
+            if (user == null || user.getTenant() == null) {
+                return;
+            }
+            EventLog event = new EventLog();
+            event.setTenant(user.getTenant());
+            event.setUser(user);
+            event.setEventDate(new Date());
+            event.setAction(action);
+            event.setSuccess(success);
+            event.setErrorMessage(reason);
+            eventLogDao.log(event);
+        } catch (Exception e) {
+            logger.error("Failed to record " + action + " event log entry", e);
+        }
     }
 
 
@@ -114,6 +158,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         final AuthenticatedUser authenticatedUser = authenticatedUserDao.getAuthenticatedUserByToken(token);
         if (authenticatedUser != null) {
             authenticatedUserDao.delete(authenticatedUser);
+            logLogoutEvent(authenticatedUser.getUser());
         }
     }
 
@@ -131,6 +176,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (authenticatedUser != null) {
             authenticatedUserDao.delete(authenticatedUser);
         }
+        logLogoutEvent(user);
     }
 
     @Override

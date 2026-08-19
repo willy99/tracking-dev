@@ -235,7 +235,7 @@
                     </ul>
                 </li>
 
-                <#if shiro.isPermitted("COMPANY_MANAGEMENT")>
+                <#if shiro.isPermitted("COMPANY_MANAGEMENT") || shiro.isPermitted("SYSTEM_MONITORING")>
                     <li class="has-sub-menu settings">
                         <a data-toggle="dropdown" class="dropdown-toggle">System Tools</a>
 
@@ -246,12 +246,17 @@
                             <#if shiro.isPermitted("COMPANY_MANAGE_ROLES")>
                                 <li><a href="${contextPath}/tmw/userstore/roleManagement">Role management</a></li>
                             </#if>
-                            <li class="sub-menu-divider"></li>
-                            <li>
-                                <a href="#" onclick="invalidateHibernateCache(event)">
-                                    <i class="fa fa-trash-o"></i> Invalidate Cache
-                                </a>
-                            </li>
+                            <#if shiro.isPermitted("SYSTEM_MONITORING")>
+                                <li <#if top_nav_selected == 'adminMonitoring'>class="current-page"</#if>><a href="${contextPath}/tmw/admin/monitoring/dashboard">Monitoring</a></li>
+                            </#if>
+                            <#if shiro.isPermitted("COMPANY_MANAGEMENT")>
+                                <li class="sub-menu-divider"></li>
+                                <li>
+                                    <a href="#" onclick="invalidateHibernateCache(event)">
+                                        <i class="fa fa-trash-o"></i> Invalidate Cache
+                                    </a>
+                                </li>
+                            </#if>
                         </ul>
                     </li>
                 </#if>

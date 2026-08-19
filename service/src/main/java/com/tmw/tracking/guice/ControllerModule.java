@@ -23,5 +23,6 @@ public class ControllerModule extends AbstractModule {
         bind(CompanyController.class);
         bind(CalculatorController.class);
         bind(FlexController.class);
+        bind(AdminMonitoringController.class);
     }
 }
