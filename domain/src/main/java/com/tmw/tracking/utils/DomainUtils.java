@@ -97,10 +97,27 @@ public class DomainUtils {
         try {
             InputStream propertiesInputStream = DomainUtils.class.getClassLoader().getResourceAsStream(path);
             applicationProperties.load(propertiesInputStream);
+            applyEnvironmentOverrides(applicationProperties);
         } catch (IOException e) {
             logger.error(errorToString(e));
         }
         return applicationProperties;
+    }
+
+    /**
+     * Lets an environment variable override any value loaded from a *.properties file on the
+     * classpath, so secrets (mail/API passwords, etc.) don't have to be committed to git.
+     * Naming convention: a key like {@code tracking.server.password} is overridden by
+     * {@code TRACKING_APP_TRACKING_SERVER_PASSWORD}.
+     */
+    private static void applyEnvironmentOverrides(final Properties properties) {
+        for (String key : properties.stringPropertyNames()) {
+            final String envVarName = "TRACKING_APP_" + key.toUpperCase().replace('.', '_');
+            final String envValue = System.getenv(envVarName);
+            if (StringUtils.isNotBlank(envValue)) {
+                properties.setProperty(key, envValue);
+            }
+        }
     }
 
 

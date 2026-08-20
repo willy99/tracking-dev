@@ -19,6 +19,9 @@ public class FlexSearchFilterTO {
     /** If true — only flexes that are mounted to a container. */
     private Boolean hasMountContainer;
 
+    /** If true — only flexes still "on balance": no export order and not mounted to a container. */
+    private Boolean onBalance;
+
     public String getSerialNum() { return serialNum; }
     public void setSerialNum(String serialNum) { this.serialNum = serialNum; }
 
@@ -36,4 +39,7 @@ public class FlexSearchFilterTO {
 
     public Boolean getHasMountContainer() { return hasMountContainer; }
     public void setHasMountContainer(Boolean hasMountContainer) { this.hasMountContainer = hasMountContainer; }
+
+    public Boolean getOnBalance() { return onBalance; }
+    public void setOnBalance(Boolean onBalance) { this.onBalance = onBalance; }
 }

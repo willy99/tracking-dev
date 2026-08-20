@@ -23,8 +23,7 @@ import java.util.List;
  */
 public class TrackingResponseFilter implements ContainerResponseFilter {
     private final static Logger logger = LoggerFactory.getLogger(TrackingResponseFilter.class);
-    private static String remoteAddr;
-    private static List<String> allowedOrigins;
+    private static volatile List<String> allowedOrigins;
 
 
     /**
@@ -36,14 +35,15 @@ public class TrackingResponseFilter implements ContainerResponseFilter {
         if (allowedOrigins == null) {
             allowedOrigins = Arrays.asList(DomainUtils.getProperties().getProperty("origin.list.allowed").split(","));
         }
+        String requestOrigin = null;
         if (containerRequest != null) {
             List<String> originList = containerRequest.getRequestHeaders().get("origin");
             if (originList != null && originList.size()>0) {
-                remoteAddr = originList.get(0);
+                requestOrigin = originList.get(0);
             }
         }
         if(containerResponse != null && (containerResponse.getStatus() == Response.Status.OK.getStatusCode() || containerResponse.getStatus() == Response.Status.NO_CONTENT.getStatusCode()))
-            updateResponse(containerResponse);
+            updateResponse(containerResponse, requestOrigin);
         else if(containerResponse != null && containerResponse.getStatus() != 200) {
             processError(containerResponse);
         }
@@ -53,8 +53,9 @@ public class TrackingResponseFilter implements ContainerResponseFilter {
     /**
      * Convert service result to {@link ServiceResponse}
      * @param containerResponse the {@code ContainerResponse} object. Cannot be {@code null}.
+     * @param requestOrigin the {@code Origin} header of the current request, or {@code null} if absent.
      */
-    private void updateResponse(final ContainerResponse containerResponse){
+    private void updateResponse(final ContainerResponse containerResponse, final String requestOrigin){
         if(containerResponse == null || (containerResponse.getStatus() != Response.Status.OK.getStatusCode() && containerResponse.getStatus() != Response.Status.NO_CONTENT.getStatusCode()))return;
         final ObjectMapper objectMapper = Utils.initObjectMapper();
         final StringWriter stringWriter = new StringWriter();
@@ -62,15 +63,13 @@ public class TrackingResponseFilter implements ContainerResponseFilter {
             objectMapper.writeValue(stringWriter, new ServiceResponse(com.tmw.tracking.web.service.util.response.Status.DONE, containerResponse.getEntity()));
             containerResponse.setEntity(stringWriter.toString());
             containerResponse.setStatusType(Response.Status.OK);
-            //if (allowedOrigins.contains(remoteAddr)) {
-            //TODO security - remove after test for release
-                containerResponse.getHttpHeaders().add("Access-Control-Allow-Origin", "*");
+            if (requestOrigin != null && allowedOrigins.contains(requestOrigin)) {
+                containerResponse.getHttpHeaders().add("Access-Control-Allow-Origin", requestOrigin);
                 containerResponse.getHttpHeaders().add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, locale");
                 containerResponse.getHttpHeaders().add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
                 containerResponse.getHttpHeaders().add("Access-Control-Max-Age", "600");
-                containerResponse.getHttpHeaders().add(HttpHeaders.CONTENT_ENCODING, "UTF-8");
-
-            //}
+            }
+            containerResponse.getHttpHeaders().add(HttpHeaders.CONTENT_ENCODING, "UTF-8");
         }
         catch (Exception e){
             logger.error(Utils.errorToString(e));

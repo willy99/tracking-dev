@@ -592,6 +592,7 @@ public class FlexDaoImpl implements FlexDao {
         String warehouseName      = (filter != null) ? filter.getWarehouseName()      : null;
         Boolean hasExportOrder    = (filter != null) ? filter.getHasExportOrder()     : null;
         Boolean hasMountContainer = (filter != null) ? filter.getHasMountContainer()  : null;
+        Boolean onBalance         = (filter != null) ? filter.getOnBalance()          : null;
 
         StringBuilder hql = new StringBuilder(
             "SELECT f.id, f.serialNumber, " +
@@ -626,6 +627,10 @@ public class FlexDaoImpl implements FlexDao {
         }
         if (Boolean.TRUE.equals(hasMountContainer)) {
             hql.append(" AND mc IS NOT NULL");
+        }
+        if (Boolean.TRUE.equals(onBalance)) {
+            // not exported and not mounted to a container yet — still in stock
+            hql.append(" AND eo IS NULL AND mc IS NULL");
         }
         hql.append(" ORDER BY f.importDate DESC");
 

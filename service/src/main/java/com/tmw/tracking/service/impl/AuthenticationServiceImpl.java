@@ -11,6 +11,7 @@ import com.tmw.tracking.entity.Company;
 import com.tmw.tracking.entity.User;
 import com.tmw.tracking.mail.MailSender;
 import com.tmw.tracking.service.AuthenticationService;
+import com.tmw.tracking.utils.LoginAttemptTracker;
 import com.tmw.tracking.utils.PasswordGenerator;
 import com.tmw.tracking.utils.Utils;
 import com.tmw.tracking.web.service.exception.NotFoundException;
@@ -68,18 +69,31 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         }
         MDC.put(Utils.MDC_USER, credentials);
+        if (LoginAttemptTracker.isLocked(credentials)) {
+            throw new ServiceException("Too many failed login attempts. Try again in "
+                    + LoginAttemptTracker.lockedForMinutes(credentials) + " minute(s).",
+                    ErrorCode.AUTH_ERROR_USER_IS_BLOCKED);
+        }
         user = userDao.getAnyUserByCredentials(credentials);
         if (user == null) {
             // no user resolved -> no tenant to attribute the event to, can't log
+            LoginAttemptTracker.recordFailure(credentials);
             throw new NotFoundException("User ["+credentials+"] not recognized. Please provide password.");
         }
         if(!user.isActive() || !user.getTenant().isActive()){
             logLoginEvent(user, false, "Account disabled");
             throw new ServiceException("User ["+credentials+"] is not active, login denied", ErrorCode.AUTH_ERROR_ACCOUNT_DISABLED);
         }
-        if (!user.getPassword().equals(PasswordGenerator.encryptPassword(password))) {
+        if (!PasswordGenerator.verifyPassword(password, user.getPassword())) {
+            LoginAttemptTracker.recordFailure(credentials);
             logLoginEvent(user, false, "Invalid credentials");
             throw new ServiceException("The credentials are incorrect!", ErrorCode.AUTH_ERROR_USER_OR_PASSWORD_IS_INVALID);
+        }
+        LoginAttemptTracker.recordSuccess(credentials);
+        if (PasswordGenerator.isLegacyHash(user.getPassword())) {
+            // password matched under the old unsalted scheme -> migrate it now that we have the plaintext
+            user.setPassword(PasswordGenerator.hashPassword(password));
+            userDao.update(user);
         }
         final AuthenticatedUser authenticatedUser = loginUser(user);
         logLoginEvent(user, true, null);
@@ -192,7 +206,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         //TODO generate link
         if (generateNew) {
             String password = PasswordGenerator.generateSecurePassword();
-            user.setPassword(PasswordGenerator.encryptPassword(password));
+            user.setPassword(PasswordGenerator.hashPassword(password));
         }
 
         user.setActivationHash(PasswordGenerator.generateHash(user.getPassword() + System.currentTimeMillis(), "SHA-256"));
@@ -205,7 +219,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public void passwordWorkflowForUpdateUser(User user, String newPassword) {
-        user.setPassword(PasswordGenerator.encryptPassword(newPassword));
+        user.setPassword(PasswordGenerator.hashPassword(newPassword));
         user.setActivationHash(null);
         String body = "Password for your account has been changed!";
         mailSender.sendEmailMessage(user.getEmail(), "So-Tracking. Account password changing", body);

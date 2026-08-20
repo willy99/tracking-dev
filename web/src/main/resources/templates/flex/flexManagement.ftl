@@ -42,6 +42,10 @@
                         <input type="checkbox" ng-model="filter.hasMountContainer" ng-change="search()">
                         Mounted
                     </label>
+                    <label class="filter-checkbox-label">
+                        <input type="checkbox" ng-model="filter.onBalance" ng-change="search()">
+                        On Balance (залишок)
+                    </label>
                 </span>
 
                 <button class="button button-blue" ng-click="search()">
@@ -238,7 +242,7 @@
 
     app.controller('flexMgmtController', function ($scope, $filter, $http, NgTableParams) {
 
-        $scope.filter     = { serialNum: '', containerNum: '', exportOrderNum: '', warehouseName: '', hasExportOrder: false, hasMountContainer: false };
+        $scope.filter     = { serialNum: '', containerNum: '', exportOrderNum: '', warehouseName: '', hasExportOrder: false, hasMountContainer: false, onBalance: false };
         $scope.warehouses = [];
         $scope.allData    = [];
         $scope.loading    = false;
@@ -275,7 +279,8 @@
                 exportOrderNum:   $scope.filter.exportOrderNum || null,
                 warehouseName:    $scope.filter.warehouseName  || null,
                 hasExportOrder:   $scope.filter.hasExportOrder    ? true : null,
-                hasMountContainer:$scope.filter.hasMountContainer  ? true : null
+                hasMountContainer:$scope.filter.hasMountContainer  ? true : null,
+                onBalance:        $scope.filter.onBalance          ? true : null
             };
             $http.post(FLEX_API + '/searchFlexes', body).then(
                 function (res) {

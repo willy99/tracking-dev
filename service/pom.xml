@@ -192,6 +192,14 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <!-- In-memory DB for tests (see tracking-tests.properties): keeps the whole
+                 suite off the real dev database. Test-scoped only, never ships in the WAR. -->
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.4.200</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.google.zxing</groupId>
             <artifactId>core</artifactId>
             <version>1.7</version>

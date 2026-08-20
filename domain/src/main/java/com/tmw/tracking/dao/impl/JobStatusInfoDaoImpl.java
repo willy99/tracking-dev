@@ -70,7 +70,8 @@ public class JobStatusInfoDaoImpl implements JobStatusInfoDao {
 
     @Override
     public Date getNextRun(String jobName) {
-        Query query = entityManager.createNativeQuery("Select NEXT_FIRE_TIME from tracking.Qrtz_Triggers where JOB_NAME = '"+jobName+"' AND Trigger_Name = '"+jobName+"'");
+        Query query = entityManager.createNativeQuery("Select NEXT_FIRE_TIME from tracking.Qrtz_Triggers where JOB_NAME = ?1 AND Trigger_Name = ?1");
+        query.setParameter(1, jobName);
         BigDecimal date = ((BigDecimal)query.getSingleResult());
         return new Date(date.longValue());
     }

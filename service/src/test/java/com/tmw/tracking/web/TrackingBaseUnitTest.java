@@ -14,6 +14,7 @@ import com.tmw.tracking.filter.TrackingAuthenticationToken;
 import com.tmw.tracking.filter.TrackingCredentialsMatcher;
 import com.tmw.tracking.filter.TrackingSecurityRealm;
 import com.tmw.tracking.utils.DomainUtils;
+import com.tmw.tracking.utils.PasswordGenerator;
 import com.tmw.tracking.utils.Utils;
 import com.tmw.tracking.web.hibernate.EntityManagerProvider;
 import com.tmw.tracking.web.service.auth.AuthenticationResource;
@@ -106,9 +107,55 @@ public abstract class TrackingBaseUnitTest {
         entityManagerProvider.applyGlobalFilters();
 
         LoginRequest loginRequest = createLoginRequest(properties);
+        ensureFixtureUserExists(loginRequest);
         loginUser(authenticationResource, loginRequest);
 
 
+    }
+
+    /**
+     * Against the real (shared) DB this fixture user was pre-seeded by hand long ago. The test
+     * suite now runs against a disposable in-memory H2 database (see tracking-tests.properties)
+     * that starts empty every run, so create it here instead if it's missing.
+     */
+    private static void ensureFixtureUserExists(final LoginRequest loginRequest) {
+        final UserDao fixtureUserDao = injector.getInstance(UserDaoImpl.class);
+        // AuthenticationResource.login() uppercases the credentials before lookup; match that
+        // here since the DAO does a plain, case-sensitive "email = :email" comparison.
+        final String email = loginRequest.getUserId().toUpperCase();
+        if (fixtureUserDao.getAnyUserByCredentials(email) != null) {
+            return;
+        }
+
+        // Not using CompanyDao.create() here: it also creates its own admin User via
+        // UserInfo.convert(roleDao), which looks up a Role by name that doesn't exist yet for
+        // a from-scratch bootstrap. Persist the bare Company directly instead.
+        final EntityManager em = injector.getInstance(EntityManagerProvider.class).getEntityManager();
+        Company company = new Company();
+        company.setName("Test Company");
+        company.setActive(true);
+        em.getTransaction().begin();
+        em.persist(company);
+        em.getTransaction().commit();
+
+        Role role = new Role();
+        role.setTenant(company);
+        role.setRoleName("TEST_ADMIN");
+        role.setSystemRole(false);
+        role.setAssignable(true);
+        role.setPermissionList(new HashSet<Permission>());
+        role = injector.getInstance(RoleDaoImpl.class).update(role);
+
+        User user = new User();
+        user.setTenant(company);
+        user.setEmail(email);
+        user.setPhone(email);
+        user.setPassword(PasswordGenerator.hashPassword(loginRequest.getPassword()));
+        user.setFirstName("Test");
+        user.setLastName("User");
+        user.setActive(true);
+        user.setRole(role);
+        fixtureUserDao.create(user);
     }
 
     private static LoginRequest createLoginRequest(Properties properties) {

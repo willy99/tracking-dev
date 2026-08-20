@@ -1,5 +1,7 @@
 package com.tmw.tracking.utils;
 
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -160,6 +162,90 @@ public final class PasswordGenerator {
         return new String(password);
     }
 
+    private static final String PBKDF2_PREFIX = "pbkdf2";
+    private static final int SALT_LENGTH_BYTES = 16;
+
+    /**
+     * Hash a plaintext password for storage: PBKDF2-HMAC-SHA256 with a random per-call salt,
+     * encoded as {@code pbkdf2$<iterations>$<saltHex>$<hashHex>}. Use with {@link #verifyPassword}.
+     */
+    public static String hashPassword(final String password) {
+        if (password == null) {
+            return null;
+        }
+        final byte[] salt = new byte[SALT_LENGTH_BYTES];
+        RANDOM.nextBytes(salt);
+        final byte[] hash = pbkdf2(password.toCharArray(), salt, ITERATIONS, KEY_LENGTH);
+        return PBKDF2_PREFIX + "$" + ITERATIONS + "$" + toHex(salt) + "$" + toHex(hash);
+    }
+
+    /**
+     * Verify a plaintext password against a stored hash produced by {@link #hashPassword}.
+     * Also accepts the legacy unsalted {@link #encryptPassword} hex digest so existing users can
+     * still log in — callers should detect that case with {@link #isLegacyHash} and re-hash the
+     * password with {@link #hashPassword} once verified, to migrate the stored value.
+     */
+    public static boolean verifyPassword(final String password, final String storedHash) {
+        if (password == null || storedHash == null) {
+            return false;
+        }
+        if (isLegacyHash(storedHash)) {
+            final String legacy = encryptPassword(password);
+            return legacy != null && MessageDigest.isEqual(legacy.getBytes(), storedHash.getBytes());
+        }
+        final String[] parts = storedHash.split("\\$");
+        if (parts.length != 4) {
+            return false;
+        }
+        try {
+            final int iterations = Integer.parseInt(parts[1]);
+            final byte[] salt = fromHex(parts[2]);
+            final byte[] expected = fromHex(parts[3]);
+            final byte[] actual = pbkdf2(password.toCharArray(), salt, iterations, expected.length * 8);
+            return MessageDigest.isEqual(expected, actual);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * @return {@code true} if {@code storedHash} is the legacy unsalted SHA-256 format rather
+     * than a {@link #hashPassword} PBKDF2 hash.
+     */
+    public static boolean isLegacyHash(final String storedHash) {
+        return storedHash != null && !storedHash.startsWith(PBKDF2_PREFIX + "$");
+    }
+
+    private static byte[] pbkdf2(final char[] password, final byte[] salt, final int iterations, final int keyLengthBits) {
+        try {
+            final PBEKeySpec spec = new PBEKeySpec(password, salt, iterations, keyLengthBits);
+            final SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            return factory.generateSecret(spec).getEncoded();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static String toHex(final byte[] bytes) {
+        return convertByteArrayToHexString(bytes);
+    }
+
+    private static byte[] fromHex(final String hex) {
+        final int len = hex.length();
+        final byte[] result = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            result[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
+                    + Character.digit(hex.charAt(i + 1), 16));
+        }
+        return result;
+    }
+
+    /**
+     * @deprecated legacy unsalted single-round SHA-256 hash, kept only for verifying
+     * passwords stored before the migration to {@link #hashPassword}. Do not use for new
+     * passwords.
+     */
+    @Deprecated
     public static String encryptPassword(String password) {
         if (password == null) {
             return null;
