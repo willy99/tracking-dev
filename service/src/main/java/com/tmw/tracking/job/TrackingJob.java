@@ -5,7 +5,7 @@ import com.tmw.tracking.entity.JobStatusInfo;
 import com.tmw.tracking.job.domain.JobInfo;
 import com.tmw.tracking.utils.Utils;
 import com.tmw.tracking.web.hibernate.EntityManagerProvider;
-import org.apache.log4j.MDC;
+import org.slf4j.MDC;
 import org.quartz.InterruptableJob;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;

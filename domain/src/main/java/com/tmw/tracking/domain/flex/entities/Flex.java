@@ -20,18 +20,21 @@ public class Flex extends TenantSpecificEntity {
     @Column(nullable = false, name = "serial_number")
     private String serialNumber;
 
+    // nullable: a flex may sit on balance (not exported), or be exported but not yet mounted —
+    // FlexDaoImpl.searchFlexes() already LEFT JOINs and null-checks all three of these, and the
+    // "on balance" filter (Flex Management page) exists specifically for flexes where this is null.
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="export_order", nullable=false, updatable = true)
+    @JoinColumn(name="export_order", nullable=true, updatable = true)
     @IndexedEmbedded
     private FlexOrder exportOrder;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="import_container", nullable=false, updatable = true)
+    @JoinColumn(name="import_container", nullable=true, updatable = true)
     @IndexedEmbedded
     private FlexContainer importContainer;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="mount_container", nullable=false, updatable = true)
+    @JoinColumn(name="mount_container", nullable=true, updatable = true)
     @IndexedEmbedded
     private FlexContainer mountContainer;
 

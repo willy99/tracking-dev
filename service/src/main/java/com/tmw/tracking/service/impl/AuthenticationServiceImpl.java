@@ -20,11 +20,11 @@ import com.tmw.tracking.web.service.exception.ServiceException;
 import com.tmw.tracking.web.service.util.error.ErrorCode;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
-import org.apache.log4j.MDC;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import javax.inject.Inject;
 import javax.inject.Named;

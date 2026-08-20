@@ -6,6 +6,7 @@ import com.tmw.tracking.dao.*;
 import com.tmw.tracking.dao.impl.*;
 import com.tmw.tracking.domain.LoginRequest;
 import com.tmw.tracking.domain.LoginResponse;
+import com.tmw.tracking.domain.PermissionType;
 import com.tmw.tracking.entity.*;
 import com.tmw.tracking.entity.enums.ContainerGroup;
 import com.tmw.tracking.entity.enums.OrderStatus;
@@ -136,6 +137,17 @@ public abstract class TrackingBaseUnitTest {
         company.setActive(true);
         em.getTransaction().begin();
         em.persist(company);
+
+        // Grant every permission that exists so any controller test using this fixture user
+        // can call any @MethodCall-guarded endpoint without separately wiring permissions.
+        Set<Permission> allPermissions = new HashSet<Permission>();
+        for (PermissionType type : PermissionType.values()) {
+            Permission permission = new Permission();
+            permission.setName(type);
+            permission.setSystemPermission(false);
+            em.persist(permission);
+            allPermissions.add(permission);
+        }
         em.getTransaction().commit();
 
         Role role = new Role();
@@ -143,7 +155,7 @@ public abstract class TrackingBaseUnitTest {
         role.setRoleName("TEST_ADMIN");
         role.setSystemRole(false);
         role.setAssignable(true);
-        role.setPermissionList(new HashSet<Permission>());
+        role.setPermissionList(allPermissions);
         role = injector.getInstance(RoleDaoImpl.class).update(role);
 
         User user = new User();

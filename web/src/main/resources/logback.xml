@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+    <!-- Direct log messages to stdout -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{dd MMM yyyy HH:mm:ss,SSS} %5p %logger{1}:%L - %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- trace hibernate -->
+    <!-- <logger name="org.hibernate.type" level="TRACE"/> -->
+    <!-- Log sql queries -->
+    <!-- <logger name="org.hibernate.SQL" level="DEBUG"/> -->
+
+    <logger name="com.sun.xml.ws.transport.http" level="INFO"/>
+    <logger name="org.apache.fop.apps" level="ERROR"/>
+
+    <root level="INFO">
+        <appender-ref ref="console"/>
+    </root>
+
+</configuration>

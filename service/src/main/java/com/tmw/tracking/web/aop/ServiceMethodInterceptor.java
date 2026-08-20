@@ -10,8 +10,9 @@ import com.tmw.tracking.web.service.util.error.ErrorCode;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
-import org.apache.log4j.MDC;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.apache.shiro.SecurityUtils;
 
 import javax.persistence.OptimisticLockException;
@@ -20,7 +21,7 @@ import java.util.UUID;
 
 public class ServiceMethodInterceptor implements MethodInterceptor {
 
-    private static final Logger logger = Logger.getLogger(ServiceMethodInterceptor.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServiceMethodInterceptor.class);
 
     /**
      * {@inheritDoc}
